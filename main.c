@@ -8,7 +8,7 @@ int main(void)
     {
         BeginDrawing();
             ClearBackground(RAYWHITE);
-            DrawText("Congrats! You created your first window!!!!!3", 190, 200, 20, LIGHTGRAY);
+            DrawText("Congrats! You created your third window!", 190, 200, 20, LIGHTGRAY);
         EndDrawing();
     }
 
