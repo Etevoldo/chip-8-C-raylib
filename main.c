@@ -2,39 +2,15 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "raylib.h"
-
-#define RAM_SIZE 4096
-#define V_QTY 16
-
-#define DISPLAY_WIDTH 64
-#define DISPLAY_HEIGHT 32
-#define SCALE 10
-#define PC_START 0x200
-
-#define DEBUG
 
 typedef uint8_t u8;
 typedef uint16_t u16;
 
-typedef struct {
-    u8  index;
-    u16 arr[16];
-} Stack;
+#include "raylib.h"
+#include "types.h"
+#include "stack.h"
 
-typedef struct {
-    u8    v[V_QTY];
-    u16   index;
-    u8    delay;
-    u8    sound;
-    u8    ram[RAM_SIZE];
-    Stack stack;
-    u16   pc;
-} Regs;
-
-// standard stack data structure
-void stackPush(Stack *, u16);
-u16 stackPop(Stack *);
+#define DEBUG
 int load_rom(Regs *, char *);
 
 int main(void)
@@ -76,16 +52,4 @@ int load_rom(Regs *regs, char *file_name)
 
     fclose(rom);
     return 1;
-}
-
-void stackPush(Stack *stack, u16 value)
-{
-    stack->arr[stack->index] = value;
-    stack->index++;
-}
-
-u16 stackPop(Stack *stack)
-{
-    stack->index--;
-    return stack->arr[stack->index];
 }
