@@ -2,9 +2,12 @@ LINKER_FLAGS := -lopengl32 -lraylib -lgdi32 -lwinmm
 INCLUDE_PATH := "include"
 LIBRARY_PATH := "lib"
 BUILD_DIR := build
+DEBUG := -g
+FLAGS := -Wall
+OBJ := 05_blocks_game_textures
 
-main.exe: ${BUILD_DIR}/main.o
-	gcc ${BUILD_DIR}/main.o -o game.exe -L${LIBRARY_PATH} ${LINKER_FLAGS}
+game.exe: ${BUILD_DIR}/${OBJ}.o
+	gcc -o $@  ${BUILD_DIR}/${OBJ}.o ${FLAGS} ${DEBUG} -L${LIBRARY_PATH} ${LINKER_FLAGS}
 
-${BUILD_DIR}/main.o: main.c
-	gcc main.c -c -I${INCLUDE_PATH} -o $@
+${BUILD_DIR}/${OBJ}.o: ${OBJ}.c
+	gcc ${OBJ}.c -c ${DEBUG} ${FLAGS} -I${INCLUDE_PATH} -o $@
