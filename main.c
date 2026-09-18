@@ -1,154 +1,91 @@
-/*******************************************************************************************
-*
-*   raylib [core] example - basic screen manager
-*
-*   Example complexity rating: [★☆☆☆] 1/4
-*
-*   NOTE: This example illustrates a very simple screen manager based on a states machines
-*
-*   Example originally created with raylib 4.0, last time updated with raylib 4.0
-*
-*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
-*   BSD-like license that allows static linking with closed source software
-*
-*   Copyright (c) 2021-2025 Ramon Santamaria (@raysan5)
-*
-********************************************************************************************/
-
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
 #include "raylib.h"
 
-//------------------------------------------------------------------------------------------
-// Types and Structures Definition
-//------------------------------------------------------------------------------------------
-typedef enum GameScreen { LOGO = 0, TITLE, GAMEPLAY, ENDING } GameScreen;
+#define RAM_SIZE 4096
+#define V_QTY 16
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
+#define DISPLAY_WIDTH 64
+#define DISPLAY_HEIGHT 32
+#define SCALE 10
+#define PC_START 0x200
+
+#define DEBUG
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+
+typedef struct {
+    u8  index;
+    u16 arr[16];
+} Stack;
+
+typedef struct {
+    u8    v[V_QTY];
+    u16   index;
+    u8    delay;
+    u8    sound;
+    u8    ram[RAM_SIZE];
+    Stack stack;
+    u16   pc;
+} Regs;
+
+// standard stack data structure
+void stackPush(Stack *, u16);
+u16 stackPop(Stack *);
+int load_rom(Regs *, char *);
+
 int main(void)
 {
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    Stack s = (Stack) {0, { 0 }};
+    Regs regs = (Regs) {
+        .v = { 0 },
+        .index = 0,
+        .delay = 0,
+        .sound = 0,
+        .ram = { 0 },
+        .stack = s,
+        .pc = 0x200
+    };
+    bool display[DISPLAY_HEIGHT * DISPLAY_WIDTH] = { false };
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - basic screen manager");
-
-    GameScreen currentScreen = LOGO;
-
-    // TODO: Initialize all required variables and load all required data here!
-
-    int framesCounter = 0;          // Useful to count frames
-
-    SetTargetFPS(60);               // Set desired framerate (frames-per-second)
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        switch (currentScreen)
-        {
-            case LOGO:
-            {
-                // TODO: Update LOGO screen variables here!
-
-                framesCounter++;    // Count frames
-
-                // Wait for 2 seconds (120 frames) before jumping to TITLE screen
-                if (framesCounter > 120)
-                {
-                    currentScreen = TITLE;
-                }
-            } break;
-            case TITLE:
-            {
-                // TODO: Update TITLE screen variables here!
-
-                // Press enter to change to GAMEPLAY screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    currentScreen = GAMEPLAY;
-                }
-            } break;
-            case GAMEPLAY:
-            {
-                // TODO: Update GAMEPLAY screen variables here!
-
-                // Press enter to change to ENDING screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    currentScreen = ENDING;
-                }
-            } break;
-            case ENDING:
-            {
-                // TODO: Update ENDING screen variables here!
-
-                // Press enter to return to TITLE screen
-                if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-                {
-                    currentScreen = TITLE;
-                }
-            } break;
-            default: break;
-        }
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
-
-            ClearBackground(RAYWHITE);
-
-            switch(currentScreen)
-            {
-                case LOGO:
-                {
-                    // TODO: Draw LOGO screen here!
-                    DrawText("LOGO SCREEN", 20, 20, 40, LIGHTGRAY);
-                    DrawText("WAIT for 2 SECONDS...", 290, 220, 20, GRAY);
-
-                } break;
-                case TITLE:
-                {
-                    // TODO: Draw TITLE screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, GREEN);
-                    DrawText("TITLE SCREEN", 20, 20, 40, DARKGREEN);
-                    DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, DARKGREEN);
-
-                } break;
-                case GAMEPLAY:
-                {
-                    // TODO: Draw GAMEPLAY screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, PURPLE);
-                    DrawText("GAMEPLAY SCREEN", 20, 20, 40, MAROON);
-                    DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, MAROON);
-
-                } break;
-                case ENDING:
-                {
-                    // TODO: Draw ENDING screen here!
-                    DrawRectangle(0, 0, screenWidth, screenHeight, BLUE);
-                    DrawText("ENDING SCREEN", 20, 20, 40, DARKBLUE);
-                    DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, DARKBLUE);
-
-                } break;
-                default: break;
-            }
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
-
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-
-    // TODO: Unload all loaded data (textures, fonts, audio) here!
-
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    load_rom(&regs, "./tests/1-chip8-logo.ch8");
 
     return 0;
+}
+
+int load_rom(Regs *regs, char *file_name)
+{
+    FILE *rom;
+    if ((rom = fopen(file_name, "rb")) == NULL)
+        return 0;
+
+    int rom_size = fread(
+        regs->ram + PC_START,
+        1,
+        RAM_SIZE - PC_START,
+        rom);
+
+    #ifdef DEBUG
+    for (int i = PC_START; i < PC_START + rom_size; i++) {
+        printf("%.2X ", regs->ram[i]);
+    }
+    #endif
+
+    fclose(rom);
+    return 1;
+}
+
+void stackPush(Stack *stack, u16 value)
+{
+    stack->arr[stack->index] = value;
+    stack->index++;
+}
+
+u16 stackPop(Stack *stack)
+{
+    stack->index--;
+    return stack->arr[stack->index];
 }

@@ -4,9 +4,9 @@ LIBRARY_PATH := "lib"
 BUILD_DIR := build
 DEBUG := -g
 FLAGS := -Wall
-OBJ := 05_blocks_game_textures
+OBJ := main
 
-game.exe: ${BUILD_DIR}/${OBJ}.o
+${OBJ}.exe: ${BUILD_DIR}/${OBJ}.o
 	gcc -o $@  ${BUILD_DIR}/${OBJ}.o ${FLAGS} ${DEBUG} -L${LIBRARY_PATH} ${LINKER_FLAGS}
 
 ${BUILD_DIR}/${OBJ}.o: ${OBJ}.c
