@@ -17,6 +17,8 @@ typedef struct {
 #define PC_START 0x200
 #define RAM_SIZE 4096
 #define V_QTY 16
+#define N_OF_KEYS 16
+#define NO_KEY 16
 
 typedef struct {
     u8    v[V_QTY];
@@ -27,5 +29,11 @@ typedef struct {
     Stack stack;
     u16   pc;
 } Regs;
+
+typedef struct {
+    bool  display[DISPLAY_HEIGHT * DISPLAY_WIDTH];
+    bool  keys_down[N_OF_KEYS];
+    int   last_key_pressed;
+} IO;
 
 #endif
