@@ -4,13 +4,16 @@ LIBRARY_PATH := "lib"
 BUILD_DIR := build
 DEBUG := -g
 FLAGS := -Wall
-OBJ := main
+OBJ_DEPENDENCY := ${BUILD_DIR}/main.o ${BUILD_DIR}/stack.o ${BUILD_DIR}/renderer.o
 
-${OBJ}.exe: ${BUILD_DIR}/${OBJ}.o ${BUILD_DIR}/stack.o 
-	gcc -o $@ ${BUILD_DIR}/${OBJ}.o ${FLAGS} ${DEBUG} -L${LIBRARY_PATH} ${LINKER_FLAGS}
+main.exe: ${OBJ_DEPENDENCY}
+	gcc -o $@ ${OBJ_DEPENDENCY} ${FLAGS} ${DEBUG} -L${LIBRARY_PATH} ${LINKER_FLAGS}
 
-${BUILD_DIR}/${OBJ}.o: ${OBJ}.c stack.c
-	gcc ${OBJ}.c -c ${DEBUG} ${FLAGS} -I${INCLUDE_PATH} -o $@
+${BUILD_DIR}/main.o: main.c stack.c
+	gcc main.c -c ${DEBUG} ${FLAGS} -I${INCLUDE_PATH} -o $@
 
 ${BUILD_DIR}/stack.o: stack.c
 	gcc stack.c -c ${DEBUG} ${FLAGS} -I${INCLUDE_PATH} -o $@
+
+${BUILD_DIR}/renderer.o: renderer.c
+	gcc renderer.c -c ${DEBUG} ${FLAGS} -I${INCLUDE_PATH} -o $@

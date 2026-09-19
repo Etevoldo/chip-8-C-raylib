@@ -1,7 +1,15 @@
 #ifndef TYPES_H
 #define TYPES_H
 #include <stdint.h>
-#include "stack.h"
+#include <stdbool.h>
+
+typedef uint8_t u8;
+typedef uint16_t u16;
+
+typedef struct {
+    u8  index;
+    u16 arr[16];
+} Stack;
 
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 32
