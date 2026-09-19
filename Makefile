@@ -2,7 +2,7 @@
 # compiles them and sends them to the 'build' directory, and links
 # them all to the 'main' executable.
 
-OBJS = main.o stack.o renderer.o
+OBJS = main.o stack.o renderer.o instructions.o
 
 LINKER_FLAGS := -lopengl32 -lraylib -lgdi32 -lwinmm
 INCLUDE_PATH := "include"
