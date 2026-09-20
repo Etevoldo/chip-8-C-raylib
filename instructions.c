@@ -1,4 +1,6 @@
 #include "instructions.h"
+#include "stack.h"
+#include "renderer.h"
 
 void FDE(Regs *regs, IO *io) {
 
@@ -13,8 +15,8 @@ void FDE(Regs *regs, IO *io) {
     // decode
     const u8 x   = (instruc & 0x0F00) >> 8; // 2nd nibble, V selector
     const u8 y   = (instruc & 0x00F0) >> 4; // 3rd nibble, V selector
-    const int n   = (instruc & 0x000F);      // 4th nibble, 4 bit number
-    const int kk  = (instruc & 0x00FF);      // 3rd & 4th nibble, 8 bit number
+    const u8 n   = (instruc & 0x000F);      // 4th nibble, 4 bit number
+    const u8 kk  = (instruc & 0x00FF);      // 3rd & 4th nibble, 8 bit number
     const int nnn = (instruc & 0x0FFF);      // 2-4th nibble, memory address
 
     // for general instructions
@@ -45,7 +47,7 @@ void FDE(Regs *regs, IO *io) {
         if (regs->v[x] == kk) regs->pc += 2;
         break;
     case 0x4000:
-        if (regs->v[x] == kk) regs->pc += 2;
+        if (regs->v[x] != kk) regs->pc += 2;
         break;
     case 0x5000:
         if (regs->v[x] == regs->v[y]) regs->pc += 2;
@@ -64,18 +66,22 @@ void FDE(Regs *regs, IO *io) {
         regs->index = nnn;
         break;
     case 0xB000:
+        regs->pc = regs->v[0x0] + nnn;
         break;
     case 0xC000:
+        //TODO: RNG
         break;
     case 0xD000:
         op_DXYN(x, y, n, regs, io->display);
         break;
     case 0xE000:
+        int key_to_check = regs->v[x] & 0x000F;
+        if (io->keys_down[key_to_check])
+            regs->pc += 2;
         break;
     case 0xF000:
-        op_FX00(x, other_types, regs);
+        op_FX00(x, other_types, regs, io);
         break;
-
     default:
         break;
     }
@@ -113,6 +119,7 @@ void op_DXYN(u8 x_index, u8 y_index, int n, Regs *regs, bool display[])
 
 void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
 {
+    int sub, sum, shifted_bit;
     u8 *v = regs->v;
     switch (logical_type) {
     case 0x0000:
@@ -130,20 +137,20 @@ void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
         v[0xF] = 0;
         break;
     case 0x0004:
-        int sum = v[x_index] + v[y_index];
+        sum = v[x_index] + v[y_index];
         v[x_index] += v[y_index];
 
         v[0xF] = (sum > 0xFF) ? 1 : 0;
         break;
     case 0x0005:
-        int sub = v[x_index] - v[y_index];
+        sub = v[x_index] - v[y_index];
         v[x_index] -= v[y_index];
 
         v[0xF] = (sub < 0) ? 0 : 1;
         break;
     case 0x0006:
         v[x_index] = v[y_index];
-        int shifted_bit = v[x_index] & 0b00000001;
+        shifted_bit = v[x_index] & 0b00000001;
         v[x_index] = v[x_index] >> 1;
 
         v[0xF] = (shifted_bit == 1) ? 1 : 0;
@@ -166,7 +173,59 @@ void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
     }
 }
 
-void op_FX00(u8 x_index, int other_type, Regs *regs)
+void op_FX00(u8 x_index, int other_type, Regs *regs, IO *io)
 {
+    switch (other_type) {
+    case 0x0007:
+        regs->v[x_index] = regs->delay;
+        break;
+    case 0x0009:
+        if (io->last_key_pressed != NO_KEY) {
+            regs->v[x_index] = (u8) io->last_key_pressed;
+        }
+        else {
+            regs->pc -= 2;
+        }
+        break;
+    case 0x0015:
+        regs->delay = regs->v[x_index];
+        break;
+    case 0x0018:
+        regs->sound = regs->v[x_index];
+        break;
+    case 0x001E:
+        regs->index += regs->v[x_index];
+        break;
+    case 0x0029:
+        u16 last_nibble = regs->v[x_index] & 0x0F;
+        regs->index = FONT_START + (last_nibble * 5);
+        break;
+    case 0x0033:
+        u8 number = regs->v[x_index];
+        u8 digits[3] = { 0 };
 
+        for (int i = 0; i < 3; i++) {
+            digits[i] = number % 10;
+            number /= 10;
+        }
+
+        for (int i = 2; i >= 0; i--) {
+            regs->ram[regs->index + i] = digits[2 - i];
+        }
+        break;
+    case 0x0055:
+        for (int i = 0; i <= x_index; i++) {
+            regs->ram[regs->index + i] = regs->v[i];
+        }
+        regs->index += x_index + 1;
+        break;
+    case 0x0065:
+        for (int i = 0; i <= x_index; i++) {
+            regs->v[i] = regs->ram[regs->index + i];
+        }
+        regs->index += x_index + 1;
+        break;
+    default:
+        break;
+    }
 }

@@ -33,16 +33,15 @@ int main(void)
         .last_key_pressed = NO_KEY
     };
 
-    load_rom(&regs, "./tests/1-chip8-logo.ch8");
+    load_rom(&regs, "./tests/4-flags.ch8");
 
     InitWindow(DISPLAY_WIDTH * SCALE, DISPLAY_HEIGHT * SCALE, "Chip-8 Emu");
-    //SetTargetFPS(5);
+    SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         draw(io.display);
         printf("%.2X ", regs.pc);
         FDE(&regs, &io);
-        sleep(1);
     }
 
     return 0;
