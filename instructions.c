@@ -1,3 +1,6 @@
+#include <time.h>
+#include <stdlib.h>
+
 #include "instructions.h"
 #include "stack.h"
 #include "renderer.h"
@@ -69,15 +72,26 @@ void FDE(Regs *regs, IO *io) {
         regs->pc = regs->v[0x0] + nnn;
         break;
     case 0xC000:
+        srand((unsigned) time(NULL));
+        regs->v[x] = rand() & kk;
         //TODO: RNG
         break;
     case 0xD000:
+        io->display_wait = true;
         op_DXYN(x, y, n, regs, io->display);
         break;
     case 0xE000:
-        int key_to_check = regs->v[x] & 0x000F;
-        if (io->keys_down[key_to_check])
-            regs->pc += 2;
+        int key_to_check;
+        if (other_types == 0x009E) {
+            key_to_check = regs->v[x] & 0x000F;
+            if (io->keys_down[key_to_check])
+                regs->pc += 2;
+        }
+        else if (other_types == 0x00A1){
+            key_to_check = regs->v[x] & 0x000F;
+            if (!io->keys_down[key_to_check])
+                regs->pc += 2;
+        }
         break;
     case 0xF000:
         op_FX00(x, other_types, regs, io);
@@ -102,10 +116,12 @@ void op_DXYN(u8 x_index, u8 y_index, int n, Regs *regs, bool display[])
         int mask = 0b10000000; // no digit separator in C :(
         int byte = regs->ram[spriteIndex + byteN];
         for (int bitN = 0; bitN < 8; bitN++) {
-            bool isBitOn = (byte & mask) > 0;
+            bool isBitOn = byte & mask;
             bool isCollision = drawPixel(x, y, isBitOn, display);
 
-            if (isCollision) regs->v[0xF] = 1;
+            if (isCollision) { 
+                regs->v[0xF] = 1;
+            }
 
             mask = mask >> 1;
             x++;
@@ -179,9 +195,9 @@ void op_FX00(u8 x_index, int other_type, Regs *regs, IO *io)
     case 0x0007:
         regs->v[x_index] = regs->delay;
         break;
-    case 0x0009:
+    case 0x000A:
         if (io->last_key_pressed != NO_KEY) {
-            regs->v[x_index] = (u8) io->last_key_pressed;
+            regs->v[x_index] = io->last_key_pressed;
         }
         else {
             regs->pc -= 2;

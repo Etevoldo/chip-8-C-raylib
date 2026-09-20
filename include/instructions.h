@@ -1,6 +1,5 @@
 #ifndef INSTRUCTIONS_H
 #define INSTRUCTIONS_H
-
 #include "types.h"
 
 void FDE(Regs *regs, IO *io);

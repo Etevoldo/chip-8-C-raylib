@@ -35,6 +35,7 @@ typedef struct {
     bool  display[DISPLAY_HEIGHT * DISPLAY_WIDTH];
     bool  keys_down[N_OF_KEYS];
     int   last_key_pressed;
+    bool  display_wait;
 } IO;
 
 #endif
