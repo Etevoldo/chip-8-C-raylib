@@ -13,7 +13,7 @@ typedef struct {
 
 #define DISPLAY_WIDTH 64
 #define DISPLAY_HEIGHT 32
-#define SCALE 10
+#define SCALE 15
 #define PC_START 0x200
 #define FONT_START 0x055
 #define RAM_SIZE 4096

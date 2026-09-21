@@ -8,7 +8,7 @@ LINKER_FLAGS := -lopengl32 -lraylib -lgdi32 -lwinmm
 INCLUDE_PATH := "include"
 LIBRARY_PATH := "lib"
 BUILD_DIR := build
-DEBUG := -g
+DEBUG := -g -D DEBUG
 FLAGS := -Wall -O0
 
 # prefix object files with the build directory

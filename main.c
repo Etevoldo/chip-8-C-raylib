@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <unistd.h>
 
 #include "raylib.h"
@@ -9,11 +8,8 @@
 #include "renderer.h"
 #include "instructions.h"
 
-#define DEBUG
-
-int load_rom(Regs *, char *);
-void load_font(Regs *);
-bool drawPixel(int x, int y, bool isBitOn, bool display[]);
+int load_rom(Regs *regs, char *file_name);
+void load_font(Regs *regs);
 int map_key(int key);
 void handle_input(IO *io);
 
@@ -63,7 +59,7 @@ int main(int argc, char *argv[])
             FDE(&regs, &io);
         }
 
-        draw(&io);
+        draw(&io, &regs);
         usleep(16 * 1000);
     }
     return 0;
@@ -98,17 +94,7 @@ int load_rom(Regs *regs, char *file_name)
     if ((rom = fopen(file_name, "rb")) == NULL)
         return 0;
 
-    int rom_size = fread(
-        regs->ram + PC_START,
-        1,
-        RAM_SIZE - PC_START,
-        rom);
-
-    #ifdef DEBUG
-    for (int i = PC_START; i < PC_START + rom_size; i++) {
-        printf("%.2X ", regs->ram[i]);
-    }
-    #endif
+    fread(regs->ram + PC_START, 1, RAM_SIZE - PC_START, rom);
 
     fclose(rom);
     return 1;

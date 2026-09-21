@@ -65,6 +65,9 @@ void FDE(Regs *regs, IO *io) {
     case 0x8000:
         op_8000(x, y, logical_type, regs);
         break;
+    case 0x9000:
+        if (regs->v[x] != regs->v[y]) regs->pc += 2;
+        break;
     case 0xA000:
         regs->index = nnn;
         break;
@@ -74,7 +77,6 @@ void FDE(Regs *regs, IO *io) {
     case 0xC000:
         srand((unsigned) time(NULL));
         regs->v[x] = rand() & kk;
-        //TODO: RNG
         break;
     case 0xD000:
         io->display_wait = true;
@@ -143,6 +145,7 @@ void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
         break;
     case 0x0001:
         v[x_index] = v[x_index] | v[y_index];
+        v[0xF] = 0;
         break;
     case 0x0002:
         v[x_index] = v[x_index] & v[y_index];
