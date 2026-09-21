@@ -42,19 +42,33 @@ int main(int argc, char *argv[])
 
 
     InitWindow(DISPLAY_WIDTH * SCALE, DISPLAY_HEIGHT * SCALE, "Chip-8 Emu");
-    //SetTargetFPS(60);
+    InitAudioDevice();
+
+    Music buzz = LoadMusicStream("d2.wav");
+    PlayMusicStream(buzz);
+    PauseMusicStream(buzz);
+    SetMusicVolume(buzz, 0.5f);
 
     const int IPF = 11;        // instructions per frame
-    const int frame_time = 16; // amount of time between frames in miliseconds
+    const int frame_time = 17; // amount of time between frames in miliseconds
     while (!WindowShouldClose()) {
         if (regs.delay > 0) regs.delay -= 1;
         if (regs.sound > 0) regs.sound -= 1;
+
+        // audio
+        UpdateMusicStream(buzz);
+        if (regs.sound == 0) {
+            PauseMusicStream(buzz);
+        }
+        if (regs.sound) {
+            ResumeMusicStream(buzz); 
+        }
 
         handle_input(&io);
         //printf("%.2X %.2X", regs.ram[regs.pc], regs.ram[regs.pc + 1]);
 
         for (int i = 0; i < IPF; i++) {
-            if (io.display_wait) break;
+            //if (io.display_wait) break;
 
             FDE(&regs, &io);
         }
@@ -62,6 +76,10 @@ int main(int argc, char *argv[])
         draw(&io, &regs);
         usleep(frame_time * 1000);
     }
+
+    UnloadMusicStream(buzz);
+    CloseAudioDevice();
+    CloseWindow();
     return 0;
 }
 
