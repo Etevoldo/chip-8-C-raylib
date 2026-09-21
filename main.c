@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdint.h>
 #include <unistd.h>
 
 #include "raylib.h"
@@ -45,7 +44,8 @@ int main(int argc, char *argv[])
     InitWindow(DISPLAY_WIDTH * SCALE, DISPLAY_HEIGHT * SCALE, "Chip-8 Emu");
     //SetTargetFPS(60);
 
-    const int IPF = 11;
+    const int IPF = 11;        // instructions per frame
+    const int frame_time = 16; // amount of time between frames in miliseconds
     while (!WindowShouldClose()) {
         if (regs.delay > 0) regs.delay -= 1;
         if (regs.sound > 0) regs.sound -= 1;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
         }
 
         draw(&io, &regs);
-        usleep(16 * 1000);
+        usleep(frame_time * 1000);
     }
     return 0;
 }
@@ -77,15 +77,35 @@ void handle_input(IO *io)
         key_index = map_key(key_codes[i]);
         if (IsKeyDown(key_codes[i]) && !io->keys_down[key_index]) {
             io->keys_down[key_index] = true;
-            printf("pressed: %X ", key_index);
         }
         if (IsKeyUp(key_codes[i]) && io->keys_down[key_index]) {
-            printf("released: %X ", key_index);
             io->keys_down[key_index] = false;
             io->last_key_pressed = key_index;
         }
     }
 
+}
+
+int map_key(int key) {
+    switch (key){
+        case KEY_ONE:   return 0x1;
+        case KEY_TWO:   return 0x2;
+        case KEY_THREE: return 0x3;
+        case KEY_FOUR:  return 0xC;
+        case KEY_Q:     return 0x4;
+        case KEY_W:     return 0x5; 
+        case KEY_E:     return 0x6; 
+        case KEY_R:     return 0xD; 
+        case KEY_A:     return 0x7; 
+        case KEY_S:     return 0x8; 
+        case KEY_D:     return 0x9; 
+        case KEY_F:     return 0xE; 
+        case KEY_Z:     return 0xA; 
+        case KEY_X:     return 0x0; 
+        case KEY_C:     return 0xB; 
+        case KEY_V:     return 0xF;
+        default:        return NO_KEY;
+    }
 }
 
 int load_rom(Regs *regs, char *file_name)
@@ -124,27 +144,5 @@ void load_font(Regs *regs)
 
     for (int i = 0; i < font_length; i++) {
         regs->ram[FONT_START + i] = font[i];
-    }
-}
-
-int map_key(int key) {
-    switch (key){
-        case KEY_ONE:   return 0x1;
-        case KEY_TWO:   return 0x2;
-        case KEY_THREE: return 0x3;
-        case KEY_FOUR:  return 0xC;
-        case KEY_Q:     return 0x4;
-        case KEY_W:     return 0x5; 
-        case KEY_E:     return 0x6; 
-        case KEY_R:     return 0xD; 
-        case KEY_A:     return 0x7; 
-        case KEY_S:     return 0x8; 
-        case KEY_D:     return 0x9; 
-        case KEY_F:     return 0xE; 
-        case KEY_Z:     return 0xA; 
-        case KEY_X:     return 0x0; 
-        case KEY_C:     return 0xB; 
-        case KEY_V:     return 0xF;
-        default:        return NO_KEY;
     }
 }

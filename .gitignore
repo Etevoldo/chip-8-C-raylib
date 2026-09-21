@@ -1,4 +1,15 @@
+# object files
 build/*
+
+#executable
 *.exe
+
+# lessons from intro-course used for reference
 lessons
+# test roms from Timendus/chip8-test-suite
+tests
+
+# library specific
+lib/*
+
 .vscode

@@ -19,16 +19,16 @@ void draw(IO *io, Regs *regs)
     }
 
     #ifdef DEBUG
+    const char *text;
     for (int i = 0; i < N_OF_KEYS; i++) {
-        const char *text = TextFormat(
+        text = TextFormat(
             "%0.1X = %s", i, io->keys_down[i] ? "DOWN" : "UP");
         DrawText(text, 10, 10 * i + 10, 5, RED);
     }
 
     for (int i = 0; i < 16; i++) {
-        const char *text;
         text = TextFormat("V%0.1X = %0.2X", i, regs->v[i]);
-        DrawText(text, 59 * SCALE, 10 * i + 10, 5, RED);
+        DrawText(text, DISPLAY_WIDTH * SCALE - 50, 10 * i + 10, 5, RED);
     }
     #endif
 
