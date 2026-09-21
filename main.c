@@ -65,10 +65,9 @@ int main(int argc, char *argv[])
         }
 
         handle_input(&io);
-        //printf("%.2X %.2X", regs.ram[regs.pc], regs.ram[regs.pc + 1]);
 
         for (int i = 0; i < IPF; i++) {
-            //if (io.display_wait) break;
+            //if (io.display_wait) break; // comment to disable screen wait
 
             FDE(&regs, &io);
         }
