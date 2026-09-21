@@ -2,19 +2,22 @@
 #include "types.h"
 #include "renderer.h"
 
+#define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
+#define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
+
 void draw(IO *io, Regs *regs)
 {
     io->display_wait = false;
     io->last_key_pressed = NO_KEY;
     BeginDrawing();
-    ClearBackground(BLACK);
+    ClearBackground(OFF_COLOR);
 
     for (int y = 0; y < DISPLAY_HEIGHT; y++) {
         for (int x = 0; x < DISPLAY_WIDTH; x++) {
             int index = x + y * DISPLAY_WIDTH;
             if (!io->display[index]) continue;
  
-            DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, WHITE);
+            DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
         }
     }
 
