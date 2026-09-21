@@ -17,8 +17,9 @@ Make
 Enjoy!
 
 Future Goals:
-- [ ] Sound
+- [x] Sound
 - [ ] Add quirk configurations
+- [ ] Pixel Fade out screen effect to reduce flickering
 - [ ] Debug Functionality
     - [ ] Stack
     - [ ] All Registers
