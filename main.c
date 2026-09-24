@@ -7,6 +7,7 @@
 #include "stack.h"
 #include "renderer.h"
 #include "instructions.h"
+#include "audio.h"
 
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 4096
@@ -32,39 +33,32 @@ int main(int argc, char *argv[])
 
     IO io = (IO) {
         .display = { false },
-        .keys_down= { false },
+        .keys_down = { false },
         .last_key_pressed = NO_KEY,
-        .display_wait = false
+        .display_wait = false,
     };
+
+    Audio_data audio = init_audio();
 
     if (argc < 2) {
         printf("Not enought Arguments");
-        return 0;
+        return 1;
     }
 
     load_rom(&regs, argv[1]);
     load_font(&regs);
 
-    InitWindow(DISPLAY_WIDTH * SCALE, DISPLAY_HEIGHT * SCALE, "Chip-8 Emu");
-
-    // initializing Audio
-    InitAudioDevice();
-
-    SetAudioStreamBufferSizeDefault(BUFFER_SIZE);
-    float buffer[BUFFER_SIZE] = { };
-    int sineIndex = 0;
-
-    AudioStream stream = LoadAudioStream(SAMPLE_RATE, 32, 1);
-    SetAudioStreamPan(stream, 0.0f);
-    SetAudioStreamVolume(stream, 0.3f);
-    PlayAudioStream(stream);
-
     const int IPF = 11;        // instructions per frame
     const int frame_time = 17; // amount of time between frames in miliseconds
     while (!WindowShouldClose()) {
-        if (IsAudioStreamProcessed(stream)) {
-            init_audio_buffer(buffer, &sineIndex);
-            UpdateAudioStream(stream, buffer, BUFFER_SIZE);
+        if (IsAudioStreamProcessed(audio.stream)) {
+            sample_audio_buffer(&audio);
+            UpdateAudioStream(audio.stream, audio.buffer, BUFFER_SIZE);
+        }
+        // pause hack
+        while (IsKeyDown(KEY_P)) {
+            draw(&io, &regs);
+            usleep(frame_time * 1000);
         }
 
         if (regs.delay > 0) regs.delay -= 1;
@@ -72,10 +66,10 @@ int main(int argc, char *argv[])
 
         // audio
         if (regs.sound == 0) {
-            PauseAudioStream(stream);
+            PauseAudioStream(audio.stream);
         }
         if (regs.sound) {
-            ResumeAudioStream(stream); 
+            ResumeAudioStream(audio.stream);
         }
 
         handle_input(&io);
@@ -90,7 +84,7 @@ int main(int argc, char *argv[])
         usleep(frame_time * 1000);
     }
 
-    UnloadAudioStream(stream);
+    UnloadAudioStream(audio.stream);
     CloseAudioDevice();
     CloseWindow();
     return 0;

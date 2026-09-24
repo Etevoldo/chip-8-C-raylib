@@ -2,13 +2,13 @@
 # compiles them and sends them to the 'build' directory, and links
 # them all to the 'main' executable.
 
-OBJS = main.o stack.o renderer.o instructions.o
+OBJS = main.o stack.o renderer.o instructions.o audio.o
 
 LINKER_FLAGS := -lopengl32 -lraylib -lgdi32 -lwinmm
 INCLUDE_PATH := "include"
 LIBRARY_PATH := "lib"
 BUILD_DIR := build
-DEBUG := -g -D DEBUG
+DEBUG := -g -DDEBUG_ON
 FLAGS := -Wall -O0
 
 # prefix object files with the build directory
