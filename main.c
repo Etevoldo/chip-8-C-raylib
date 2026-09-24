@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "raylib.h"
 #include "types.h"
@@ -7,8 +8,12 @@
 #include "renderer.h"
 #include "instructions.h"
 
+#define SAMPLE_RATE 44100
+#define BUFFER_SIZE 4096
+
 int load_rom(Regs *regs, char *file_name);
 void load_font(Regs *regs);
+void init_audio_buffer(float buffer[]);
 int map_key(int key);
 void handle_input(IO *io);
 
@@ -40,28 +45,35 @@ int main(int argc, char *argv[])
     load_rom(&regs, argv[1]);
     load_font(&regs);
 
-
     InitWindow(DISPLAY_WIDTH * SCALE, DISPLAY_HEIGHT * SCALE, "Chip-8 Emu");
+
+    // initializing Audio
     InitAudioDevice();
 
-    Music buzz = LoadMusicStream("d2.wav");
-    PlayMusicStream(buzz);
-    PauseMusicStream(buzz);
-    SetMusicVolume(buzz, 0.5f);
+    SetAudioStreamBufferSizeDefault(BUFFER_SIZE);
+    float buffer[BUFFER_SIZE] = { };
+
+    AudioStream stream = LoadAudioStream(SAMPLE_RATE, 32, 1);
+    SetAudioStreamPan(stream, 0.0f);
+    PlayAudioStream(stream);
+    init_audio_buffer(buffer);
 
     const int IPF = 11;        // instructions per frame
     const int frame_time = 17; // amount of time between frames in miliseconds
     while (!WindowShouldClose()) {
+        if (IsAudioStreamProcessed(stream)) {
+            UpdateAudioStream(stream, buffer, BUFFER_SIZE);
+        }
+
         if (regs.delay > 0) regs.delay -= 1;
         if (regs.sound > 0) regs.sound -= 1;
 
         // audio
-        UpdateMusicStream(buzz);
         if (regs.sound == 0) {
-            PauseMusicStream(buzz);
+            PauseAudioStream(stream);
         }
         if (regs.sound) {
-            ResumeMusicStream(buzz); 
+            ResumeAudioStream(stream); 
         }
 
         handle_input(&io);
@@ -76,10 +88,28 @@ int main(int argc, char *argv[])
         usleep(frame_time * 1000);
     }
 
-    UnloadMusicStream(buzz);
+    UnloadAudioStream(stream);
     CloseAudioDevice();
     CloseWindow();
     return 0;
+}
+
+void init_audio_buffer(float buffer[]) {
+    const int sineFrequency = 440;
+    int sineIndex = 0;
+
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        int wavelength = SAMPLE_RATE / sineFrequency;
+        buffer[i] = sinf(2* PI * sineIndex/wavelength);
+        //if (sinf(2*PI*sineIndex/wavelength) > 0.0f) {
+        //    buffer[i] = 1.0f;
+        //}
+        //else {
+        //    buffer[i] = -1.0f;
+        //}
+        sineIndex++;
+        //if (sineIndex >= wavelength) sineIndex = 0;
+    }
 }
 
 void handle_input(IO *io)
