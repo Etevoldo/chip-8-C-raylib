@@ -23,15 +23,47 @@ void draw(IO *io, Regs *regs)
 
     #ifdef DEBUG
     const char *text;
+    const int debug_anchor = DISPLAY_WIDTH * SCALE; // right letterbox
     for (int i = 0; i < N_OF_KEYS; i++) {
         text = TextFormat(
             "%0.1X = %s", i, io->keys_down[i] ? "DOWN" : "UP");
-        DrawText(text, 10, 10 * i + 10, 5, RED);
+        DrawText(text, debug_anchor + 10, 10 * i + 10, 5, WHITE);
     }
 
     for (int i = 0; i < 16; i++) {
         text = TextFormat("V%0.1X = %0.2X", i, regs->v[i]);
-        DrawText(text, DISPLAY_WIDTH * SCALE - 50, 10 * i + 10, 5, RED);
+        DrawText(text, debug_anchor + 80, 10 * i + 10, 5, WHITE);
+    }
+
+    int i = 0;
+    for (int j = regs->pc - 15; j < regs->pc + 15; j++) {
+        text = TextFormat("ram[%0.2X]:\t0x%0.2X%0.2X",
+            j, regs->ram[j], regs->ram[j + 1]);
+        Color tint;
+        if (j == regs->pc) tint = RED;
+        else tint = WHITE;
+
+        DrawText(
+            text,
+            debug_anchor + 150,
+            10 * i + 10,
+            10.0f,
+            tint);
+        i++;
+    }
+
+    // stack
+    u16 address;
+    DrawText(
+        "Stack:", 
+        debug_anchor + 10,
+        DISPLAY_HEIGHT * SCALE - 30,
+        10,
+        RED);
+    for (int i = 0; i < regs->stack.index; i++) {
+        address = regs->stack.arr[i];
+        text = TextFormat("0x%0.4X > ", address);
+        DrawText(text, debug_anchor + 10 + (50 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
     }
     #endif
 
