@@ -21,7 +21,7 @@ void draw(IO *io, Regs *regs)
         }
     }
 
-    #ifdef DEBUG
+    #ifdef DEBUG_ON
     const char *text;
     const int debug_anchor = DISPLAY_WIDTH * SCALE; // right letterbox
     for (int i = 0; i < N_OF_KEYS; i++) {
@@ -60,10 +60,10 @@ void draw(IO *io, Regs *regs)
         DISPLAY_HEIGHT * SCALE - 30,
         10,
         RED);
-    for (int i = 0; i < regs->stack.index; i++) {
+    for (int i = 0; i < 16; i++) {
         address = regs->stack.arr[i];
-        text = TextFormat("0x%0.4X > ", address);
-        DrawText(text, debug_anchor + 10 + (50 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
+        text = TextFormat("%0.4X ", address);
+        DrawText(text, debug_anchor + 10 + (30 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
     }
     #endif
 

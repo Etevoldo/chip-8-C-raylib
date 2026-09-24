@@ -20,6 +20,17 @@ void handle_input(IO *io);
 
 int main(int argc, char *argv[])
 {
+    #ifdef DEBUG_ON
+    InitWindow(
+        DISPLAY_WIDTH * SCALE + 400,
+        DISPLAY_HEIGHT * SCALE,
+        "Chip-8 Emu");
+    #else
+    InitWindow(DISPLAY_WIDTH * SCALE,
+        DISPLAY_HEIGHT * SCALE,
+        "Chip-8 Emu");
+    #endif
+
     Stack s = (Stack) {0, { 0 }};
     Regs regs = (Regs) {
         .v = { 0 },
