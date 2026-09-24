@@ -13,7 +13,7 @@
 
 int load_rom(Regs *regs, char *file_name);
 void load_font(Regs *regs);
-void init_audio_buffer(float buffer[]);
+void init_audio_buffer(float buffer[], int *sineIndex);
 int map_key(int key);
 void handle_input(IO *io);
 
@@ -52,16 +52,18 @@ int main(int argc, char *argv[])
 
     SetAudioStreamBufferSizeDefault(BUFFER_SIZE);
     float buffer[BUFFER_SIZE] = { };
+    int sineIndex = 0;
 
     AudioStream stream = LoadAudioStream(SAMPLE_RATE, 32, 1);
     SetAudioStreamPan(stream, 0.0f);
+    SetAudioStreamVolume(stream, 0.3f);
     PlayAudioStream(stream);
-    init_audio_buffer(buffer);
 
     const int IPF = 11;        // instructions per frame
     const int frame_time = 17; // amount of time between frames in miliseconds
     while (!WindowShouldClose()) {
         if (IsAudioStreamProcessed(stream)) {
+            init_audio_buffer(buffer, &sineIndex);
             UpdateAudioStream(stream, buffer, BUFFER_SIZE);
         }
 
@@ -94,21 +96,20 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void init_audio_buffer(float buffer[]) {
+void init_audio_buffer(float buffer[], int *sineIndex) {
     const int sineFrequency = 440;
-    int sineIndex = 0;
 
     for (int i = 0; i < BUFFER_SIZE; i++) {
         int wavelength = SAMPLE_RATE / sineFrequency;
-        buffer[i] = sinf(2* PI * sineIndex/wavelength);
+        buffer[i] = sinf(2* PI * (*sineIndex)/wavelength) > 0 ? 1 : -1;
         //if (sinf(2*PI*sineIndex/wavelength) > 0.0f) {
         //    buffer[i] = 1.0f;
         //}
         //else {
         //    buffer[i] = -1.0f;
         //}
-        sineIndex++;
-        //if (sineIndex >= wavelength) sineIndex = 0;
+        (*sineIndex)++;
+        if ((*sineIndex) >= wavelength) (*sineIndex) = 0;
     }
 }
 
