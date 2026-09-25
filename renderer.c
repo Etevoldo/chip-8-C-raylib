@@ -1,6 +1,9 @@
+#define RAYGUI_IMPLEMENTATION
 #include "raylib.h"
 #include "types.h"
 #include "renderer.h"
+#include "raygui.h"
+
 
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
 #define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
@@ -20,6 +23,14 @@ void draw(IO *io, Regs *regs)
             DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
         }
     }
+
+    int btnActive = -1;
+    GuiMessageBox(
+        (Rectangle){100, 100, 250, 250},
+        "#191#Message Box",
+        "Hi! This is a message!",
+        "Nice;Cool",
+        &btnActive);
 
     #ifdef DEBUG_ON
     const char *text;
