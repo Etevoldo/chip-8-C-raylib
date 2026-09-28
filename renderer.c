@@ -34,39 +34,64 @@ void draw(IO *io, Regs *regs)
 
 void draw_gui(IO *io, Regs *regs) {
     const int debug_x = DISPLAY_WIDTH * SCALE + 10;
-    const int debug_y = DISPLAY_HEIGHT * SCALE + 10;
+    const int debug_y = 10;
 
     const char *text;
     const int debug_anchor = DISPLAY_WIDTH * SCALE + 10; // right letterbox
 
-    GuiGroupBox((Rectangle) {debug_x, 10, 70, 280 }, "Keys");
+    const int label_width = 60;
+    const int label_height = 50;
+
+    // keys state
+    GuiGroupBox((Rectangle) {debug_x, debug_y, 70, 280 }, "Keys");
     for (int i = 0; i < N_OF_KEYS; i++) {
         text = TextFormat(
             "%0.1X = %s", i, io->keys_down[i] ? "DOWN" : "UP");
-        GuiLabel((Rectangle) {debug_x + 10, 15 * i, 60, 50 }, text);
+        GuiLabel(
+            (Rectangle) {debug_x + 10, 15 * i, label_width, label_height },
+            text);
     }
 
+    // Registers V 0 to F
+    GuiGroupBox((Rectangle) {debug_x + 69, debug_y, 70, 280 }, "V.Regs");
     for (int i = 0; i < 16; i++) {
         text = TextFormat("V%0.1X = %0.2X", i, regs->v[i]);
-        DrawText(text, debug_anchor + 80, 10 * i + 20, 5, WHITE);
+        GuiLabel(
+            (Rectangle) {debug_x + 79, 15 * i, label_width, label_height },
+            text);
+        //DrawText(text, debug_anchor + 80, 10 * i + 20, 5, WHITE);
     }
 
+    // Instructions
+    int inst_scrollIndex = 10;
+    int inst_active = 10;
+    int inst_focus = -1;
+    const int inst_to_display = 20;
+    char *inst_list[inst_to_display];
+    GuiGroupBox(
+        (Rectangle) {debug_x + 139, debug_y, 200, 620 },
+        "Instructions");
     int i = 0;
-    for (int j = regs->pc - 15; j < regs->pc + 15; j++) {
-        text = TextFormat("ram[%0.2X]:\t0x%0.2X%0.2X",
+    for (int j = regs->pc - 10;
+         j < regs->pc + 10;
+         j++) {
+        inst_list[i] = TextFormat("%0.4X:\t%0.2X%0.2X",
             j, regs->ram[j], regs->ram[j + 1]);
-        Color tint;
-        if (j == regs->pc) tint = RED;
-        else tint = WHITE;
 
-        DrawText(
-            text,
-            debug_anchor + 150,
-            10 * i + 10,
-            10.0f,
-            tint);
         i++;
     }
+    GuiListViewEx(
+        (Rectangle) { 
+            debug_x + 150,
+            debug_y + 10,
+            180,
+            600},
+        inst_list,
+        inst_to_display,
+        &inst_scrollIndex,
+        &inst_active,
+        &inst_focus
+    );
 
     // stack
     u16 address;
@@ -79,7 +104,7 @@ void draw_gui(IO *io, Regs *regs) {
     for (int i = 0; i < 16; i++) {
         address = regs->stack.arr[i];
         text = TextFormat("%0.4X ", address);
-        DrawText(text, debug_anchor + 10 + (30 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
+        // DrawText(text, debug_anchor + 10 + (30 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
     }
 }
 
