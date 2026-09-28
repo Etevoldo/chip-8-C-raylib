@@ -1,9 +1,7 @@
-#define RAYGUI_IMPLEMENTATION
 #include "raylib.h"
 #include "types.h"
 #include "renderer.h"
 #include "raygui.h"
-
 
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
 #define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
@@ -12,38 +10,45 @@ void draw(IO *io, Regs *regs)
 {
     io->display_wait = false;
     io->last_key_pressed = NO_KEY;
+
     BeginDrawing();
-    ClearBackground(OFF_COLOR);
 
-    for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-        for (int x = 0; x < DISPLAY_WIDTH; x++) {
-            int index = x + y * DISPLAY_WIDTH;
-            if (!io->display[index]) continue;
- 
-            DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
+        ClearBackground(BLACK);
+
+        // CHIP-8 display
+        DrawRectangle(0, 0, DISPLAY_WIDTH * SCALE, 
+            DISPLAY_HEIGHT * SCALE, OFF_COLOR);
+
+        for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+            for (int x = 0; x < DISPLAY_WIDTH; x++) {
+                int index = x + y * DISPLAY_WIDTH;
+                if (!io->display[index]) continue;
+                DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
+            }
         }
-    }
+        draw_gui(io, regs);
 
-    int btnActive = -1;
-    GuiMessageBox(
-        (Rectangle){100, 100, 250, 250},
-        "#191#Message Box",
-        "Hi! This is a message!",
-        "Nice;Cool",
-        &btnActive);
 
-    #ifdef DEBUG_ON
+    EndDrawing();
+}
+
+void draw_gui(IO *io, Regs *regs) {
+    const int debug_x = DISPLAY_WIDTH * SCALE + 10;
+    const int debug_y = DISPLAY_HEIGHT * SCALE + 10;
+
     const char *text;
-    const int debug_anchor = DISPLAY_WIDTH * SCALE; // right letterbox
+    const int debug_anchor = DISPLAY_WIDTH * SCALE + 10; // right letterbox
+
+    GuiGroupBox((Rectangle) {debug_x, 10, 70, 280 }, "Keys");
     for (int i = 0; i < N_OF_KEYS; i++) {
         text = TextFormat(
             "%0.1X = %s", i, io->keys_down[i] ? "DOWN" : "UP");
-        DrawText(text, debug_anchor + 10, 10 * i + 10, 5, WHITE);
+        GuiLabel((Rectangle) {debug_x + 10, 15 * i, 60, 50 }, text);
     }
 
     for (int i = 0; i < 16; i++) {
         text = TextFormat("V%0.1X = %0.2X", i, regs->v[i]);
-        DrawText(text, debug_anchor + 80, 10 * i + 10, 5, WHITE);
+        DrawText(text, debug_anchor + 80, 10 * i + 20, 5, WHITE);
     }
 
     int i = 0;
@@ -76,9 +81,6 @@ void draw(IO *io, Regs *regs)
         text = TextFormat("%0.4X ", address);
         DrawText(text, debug_anchor + 10 + (30 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
     }
-    #endif
-
-    EndDrawing();
 }
 
 void clear_display(bool display[])

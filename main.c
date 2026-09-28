@@ -2,12 +2,15 @@
 #include <unistd.h>
 #include <math.h>
 
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 #include "raylib.h"
 #include "types.h"
 #include "stack.h"
 #include "renderer.h"
 #include "instructions.h"
 #include "audio.h"
+#include "style_amber.h"
 
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 4096
@@ -23,13 +26,14 @@ int main(int argc, char *argv[])
     #ifdef DEBUG_ON
     InitWindow(
         DISPLAY_WIDTH * SCALE + 800,
-        DISPLAY_HEIGHT * SCALE + 400,
+        DISPLAY_HEIGHT * SCALE + 200,
         "Chip-8 Emu");
     #else
     InitWindow(DISPLAY_WIDTH * SCALE,
         DISPLAY_HEIGHT * SCALE,
         "Chip-8 Emu");
     #endif
+    GuiLoadStyleAmber();
 
     Stack s = (Stack) {0, { 0 }};
     Regs regs = (Regs) {
