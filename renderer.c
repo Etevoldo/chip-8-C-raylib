@@ -26,13 +26,13 @@ void draw(IO *io, Regs *regs)
                 DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
             }
         }
-        draw_gui(io, regs);
+        draw_debug(io, regs);
 
 
     EndDrawing();
 }
 
-void draw_gui(IO *io, Regs *regs) {
+void draw_debug(IO *io, Regs *regs) {
 
     const char *text;
 
