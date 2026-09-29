@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 {
     #ifdef DEBUG_ON
     InitWindow(
-        DISPLAY_WIDTH * SCALE + 800,
+        DISPLAY_WIDTH * SCALE + 380,
         DISPLAY_HEIGHT * SCALE + 200,
         "Chip-8 Emu");
     #else
@@ -55,16 +55,25 @@ int main(int argc, char *argv[])
 
     Audio_data audio = init_audio();
 
-    if (argc < 2) {
-        printf("Not enought Arguments");
-        return 1;
-    }
-
-    load_rom(&regs, argv[1]);
-    load_font(&regs);
-
     const int IPF = 11;        // instructions per frame
     const int frame_time = 17; // amount of time between frames in miliseconds
+
+    // Insert ROM gui pre-loop
+    while (!WindowShouldClose()) {
+        if (IsFileDropped()) {
+            FilePathList dropped_rom = LoadDroppedFiles();
+            if ((dropped_rom.count > 0)
+                && IsFileExtension(dropped_rom.paths[0], ".ch8")) {
+                load_rom(&regs, dropped_rom.paths[0]);
+                break;
+            }
+        }
+        draw(&io, &regs);
+        usleep(frame_time * 1000);
+    }
+
+    load_font(&regs);
+
     while (!WindowShouldClose()) {
         if (IsAudioStreamProcessed(audio.stream)) {
             sample_audio_buffer(&audio);
