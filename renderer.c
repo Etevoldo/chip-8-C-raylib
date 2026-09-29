@@ -33,14 +33,15 @@ void draw(IO *io, Regs *regs)
 }
 
 void draw_gui(IO *io, Regs *regs) {
-    const int debug_x = DISPLAY_WIDTH * SCALE + 10;
-    const int debug_y = 10;
 
     const char *text;
-    const int debug_anchor = DISPLAY_WIDTH * SCALE + 10; // right letterbox
 
+    const int debug_x = DISPLAY_WIDTH * SCALE + 10;
+    const int debug_y = 10;
     const int label_width = 60;
     const int label_height = 50;
+    const int label_spacing = 15;
+    const int padding = 10;
 
     // keys state
     GuiGroupBox((Rectangle) {debug_x, debug_y, 70, 280 }, "Keys");
@@ -48,7 +49,11 @@ void draw_gui(IO *io, Regs *regs) {
         text = TextFormat(
             "%0.1X = %s", i, io->keys_down[i] ? "DOWN" : "UP");
         GuiLabel(
-            (Rectangle) {debug_x + 10, 15 * i, label_width, label_height },
+            (Rectangle) {
+                debug_x + padding,
+                label_spacing * i,
+                label_width,
+                label_height },
             text);
     }
 
@@ -57,9 +62,8 @@ void draw_gui(IO *io, Regs *regs) {
     for (int i = 0; i < 16; i++) {
         text = TextFormat("V%0.1X = %0.2X", i, regs->v[i]);
         GuiLabel(
-            (Rectangle) {debug_x + 79, 15 * i, label_width, label_height },
+            (Rectangle) {debug_x + 79, label_spacing * i, label_width, label_height },
             text);
-        //DrawText(text, debug_anchor + 80, 10 * i + 20, 5, WHITE);
     }
 
     // Instructions
@@ -69,20 +73,20 @@ void draw_gui(IO *io, Regs *regs) {
     const int inst_to_display = 20;
     char *inst_list[inst_to_display];
     GuiGroupBox(
-        (Rectangle) {debug_x + 139, debug_y, 200, 620 },
+        (Rectangle) {debug_x + 138, debug_y, 200, 620 },
         "Instructions");
     int i = 0;
-    for (int j = regs->pc - 10;
-         j < regs->pc + 10;
-         j++) {
-        inst_list[i] = TextFormat("%0.4X:\t%0.2X%0.2X",
+    for (int j = regs->pc - inst_to_display;
+         j < regs->pc + inst_to_display;
+         j += 2) {
+        inst_list[i] = TextFormat("%0.4X = %0.2X%0.2X",
             j, regs->ram[j], regs->ram[j + 1]);
 
         i++;
     }
     GuiListViewEx(
         (Rectangle) { 
-            debug_x + 150,
+            debug_x + 148,
             debug_y + 10,
             180,
             600},
@@ -95,17 +99,55 @@ void draw_gui(IO *io, Regs *regs) {
 
     // stack
     u16 address;
-    DrawText(
-        "Stack:", 
-        debug_anchor + 10,
-        DISPLAY_HEIGHT * SCALE - 30,
-        10,
-        RED);
+    GuiGroupBox((Rectangle) {debug_x, debug_y + 340, 70, 280 }, "Stack");
     for (int i = 0; i < 16; i++) {
         address = regs->stack.arr[i];
-        text = TextFormat("%0.4X ", address);
-        // DrawText(text, debug_anchor + 10 + (30 * i), DISPLAY_HEIGHT * SCALE - 20, 10, WHITE);
+        text = TextFormat("%0.4X", address);
+        GuiLabel(
+            (Rectangle) {
+                debug_x + padding,
+                debug_y + 340 + label_spacing * i,
+                label_width,
+                label_height },
+            text);
     }
+
+    // other Registers
+    GuiGroupBox(
+        (Rectangle) {debug_x + 69, debug_y + 340, 70, 280 },
+        "Other\nRegs.");
+    // I registers
+    GuiLabel(
+        (Rectangle) {
+            debug_x + 69 + padding,
+            debug_y + 340 + padding,
+            label_width,
+            label_height },
+        TextFormat("I  = %0.4X", regs->index));
+    // PC
+    GuiLabel(
+        (Rectangle) {
+            debug_x + 69 + padding,
+            debug_y + 340 + padding + label_spacing,
+            label_width,
+            label_height },
+        TextFormat("PC = %0.4X", regs->pc));
+    // Sound
+    GuiLabel(
+        (Rectangle) {
+            debug_x + 69 + padding,
+            debug_y + 340 + padding + label_spacing*2,
+            label_width,
+            label_height },
+        TextFormat("ST = %0.4X", regs->sound));
+    // Delay
+    GuiLabel(
+        (Rectangle) {
+            debug_x + 69 + padding,
+            debug_y + 340 + padding + label_spacing*3,
+            label_width,
+            label_height },
+        TextFormat("DT = %0.4X", regs->delay));
 }
 
 void clear_display(bool display[])
