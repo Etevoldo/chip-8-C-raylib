@@ -8,6 +8,7 @@
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
 #define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
 #define RECT(x, y, xwidth, y_width) ((Rectangle) { x, y, xwidth, y_width })
+#define INST_DEBUG_STRING_SIZE 11 // "XXXX = XXXX"
 
 void draw(IO *io, Regs *regs, bool *is_paused)
 {
@@ -47,7 +48,7 @@ void load_debugger_inst_array(Regs *regs) {
     }
 
     for (int i = 0; i < inst_to_display; i++) {
-        inst_list[i] = (char *) malloc(12);
+        inst_list[i] = (char *) malloc(INST_DEBUG_STRING_SIZE + 1);
         if (inst_list[i] == NULL) {
             exit(EXIT_FAILURE);
         }
@@ -102,7 +103,6 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
                  label_width, label_height),
             text);
     }
-
     // Instructions
     if (!*is_paused) {
         inst_scrollIndex = regs->pc / 2 - 10;
