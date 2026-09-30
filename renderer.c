@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "raylib.h"
 #include "types.h"
 #include "renderer.h"
@@ -31,6 +33,12 @@ void draw(IO *io, Regs *regs)
 
     EndDrawing();
 }
+
+// boooooo global variables
+const int inst_to_display = 200;
+int inst_active = inst_to_display / 2;
+int inst_focus = -1;
+int inst_scrollIndex = inst_to_display / 2 - 10;
 
 void draw_debug(IO *io, Regs *regs) {
 
@@ -67,11 +75,13 @@ void draw_debug(IO *io, Regs *regs) {
     }
 
     // Instructions
-    int inst_scrollIndex = 10;
-    int inst_active = 10;
-    int inst_focus = -1;
-    const int inst_to_display = 20;
     char *inst_list[inst_to_display];
+
+    for (int i = 0; i < inst_to_display; i++) {
+        inst_list[i] = (char *) malloc(12);
+        if (inst_list[i] == NULL) i--;
+    }
+
     GuiGroupBox(
         (Rectangle) {debug_x + 138, debug_y, 200, 620 },
         "Instructions");
@@ -79,7 +89,8 @@ void draw_debug(IO *io, Regs *regs) {
     for (int j = regs->pc - inst_to_display;
          j < regs->pc + inst_to_display;
          j += 2) {
-        inst_list[i] = TextFormat("%0.4X = %0.2X%0.2X",
+        // idea to investigate this is reclycling memory values
+        sprintf(inst_list[i], "%.4X = %.2X%.2X\n",
             j, regs->ram[j], regs->ram[j + 1]);
 
         i++;
@@ -96,6 +107,10 @@ void draw_debug(IO *io, Regs *regs) {
         &inst_active,
         &inst_focus
     );
+
+    for (int i = 0; i < inst_to_display; i++) {
+        free(inst_list[i]);
+    }
 
     // stack
     u16 address;
