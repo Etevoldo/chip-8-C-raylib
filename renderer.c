@@ -7,6 +7,7 @@
 
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
 #define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
+#define RECT(x, y, xwidth, y_width) ((Rectangle) { x, y, xwidth, y_width })
 
 void draw(IO *io, Regs *regs, bool *is_paused)
 {
@@ -59,6 +60,7 @@ void load_debugger_inst_array(Regs *regs) {
     }
 }
 
+// free debug instructions string list
 void free_debugger_inst_array() {
     for (int i = 0; i < inst_to_display; i++) {
         free(inst_list[i]);
@@ -92,11 +94,12 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
     }
 
     // Registers V 0 to F
-    GuiGroupBox((Rectangle) {debug_x + 69, debug_y, 70, 280 }, "V.Regs");
+    GuiGroupBox(RECT(debug_x + 69, debug_y, 70, 280), "V.Regs");
     for (int i = 0; i < 16; i++) {
         text = TextFormat("V%0.1X = %0.2X", i, regs->v[i]);
         GuiLabel(
-            (Rectangle) {debug_x + 79, label_spacing * i, label_width, label_height },
+            RECT(debug_x + 79, label_spacing * i,
+                 label_width, label_height),
             text);
     }
 
@@ -106,15 +109,11 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
         inst_active = regs->pc / 2;
     }
     GuiGroupBox(
-        (Rectangle) {debug_x + 138, debug_y, 200, 620 },
+        RECT(debug_x + 138, debug_y, 200, 620),
         "Instructions");
 
     GuiListViewEx(
-        (Rectangle) { 
-            debug_x + 148,
-            debug_y + 10,
-            180,
-            600},
+        RECT(debug_x + 148, debug_y + 10, 180, 600),
         inst_list,
         inst_to_display,
         &inst_scrollIndex,
@@ -125,67 +124,50 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
     // Pause/unpause and step
     const int debug_buttons_y = debug_y + 285;
     GuiIconName icon = *is_paused ? ICON_PLAYER_PLAY : ICON_PLAYER_PAUSE;
-    Rectangle pause_icon = (Rectangle) {
-        debug_x, debug_buttons_y, 30, 30};
+    Rectangle pause_icon = RECT(debug_x, debug_buttons_y, 30, 30);
     if (GuiButton(pause_icon, GuiIconText(icon, ""))) {
         *is_paused = !*is_paused;
     }
-    Rectangle step_icon = (Rectangle) {
-        debug_x + 35, debug_buttons_y, 30, 30};
+    Rectangle step_icon = RECT( debug_x + 35, debug_buttons_y, 30, 30);
     if (GuiButton(step_icon, GuiIconText(ICON_STEP_OVER, ""))) {
         printf("hey!!!");
     }
 
     // stack
     u16 address;
-    GuiGroupBox((Rectangle) {debug_x, debug_y + 340, 70, 280 }, "Stack");
+    GuiGroupBox(RECT(debug_x, debug_y + 340, 70, 280 ), "Stack");
     for (int i = 0; i < 16; i++) {
         address = regs->stack.arr[i];
         text = TextFormat("%0.4X", address);
         GuiLabel(
-            (Rectangle) {
-                debug_x + padding,
-                debug_y + 340 + label_spacing * i,
-                label_width,
-                label_height },
+            RECT(debug_x + padding, debug_y + 340 + label_spacing * i,
+                label_width, label_height),
             text);
     }
 
     // other Registers
     GuiGroupBox(
-        (Rectangle) {debug_x + 69, debug_y + 340, 70, 280 },
+        RECT(debug_x + 69, debug_y + 340, 70, 280),
         "Other\nRegs.");
     // I registers
     GuiLabel(
-        (Rectangle) {
-            debug_x + 69 + padding,
-            debug_y + 340 + padding,
-            label_width,
-            label_height },
+        RECT(debug_x + 69 + padding, debug_y + 340 + padding,
+            label_width, label_height ),
         TextFormat("I  = %0.4X", regs->index));
     // PC
     GuiLabel(
-        (Rectangle) {
-            debug_x + 69 + padding,
-            debug_y + 340 + padding + label_spacing,
-            label_width,
-            label_height },
+        RECT(debug_x + 69 + padding, debug_y + 340 + padding + label_spacing,
+            label_width, label_height ),
         TextFormat("PC = %0.4X", regs->pc));
     // Sound
     GuiLabel(
-        (Rectangle) {
-            debug_x + 69 + padding,
-            debug_y + 340 + padding + label_spacing*2,
-            label_width,
-            label_height },
+        RECT(debug_x + 69 + padding, debug_y + 340 + padding + label_spacing*2,
+            label_width, label_height ),
         TextFormat("ST = %0.4X", regs->sound));
     // Delay
     GuiLabel(
-        (Rectangle) {
-            debug_x + 69 + padding,
-            debug_y + 340 + padding + label_spacing*3,
-            label_width,
-            label_height },
+        RECT(debug_x + 69 + padding, debug_y + 340 + padding + label_spacing*3,
+            label_width, label_height ),
         TextFormat("DT = %0.4X", regs->delay));
 }
 
