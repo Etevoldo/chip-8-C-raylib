@@ -35,10 +35,38 @@ void draw(IO *io, Regs *regs)
 }
 
 // boooooo global variables
-const int inst_to_display = 200;
+const int inst_to_display = RAM_SIZE / 2;
 int inst_active = inst_to_display / 2;
 int inst_focus = -1;
 int inst_scrollIndex = inst_to_display / 2 - 10;
+char **inst_list;
+
+void load_debugger_inst_array(Regs *regs) {
+    inst_list = (char **) malloc(inst_to_display * sizeof(char **));
+    if (inst_list == NULL) {
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < inst_to_display; i++) {
+        inst_list[i] = (char *) malloc(12);
+        if (inst_list[i] == NULL) {
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for (int j = 0, i = 0; i < inst_to_display; j += 2, i++) {
+        // idea to investigate this is reclycling memory values
+        sprintf(inst_list[i], "%.4X = %.2X%.2X\n",
+            j, regs->ram[j], regs->ram[j + 1]);
+    }
+}
+
+void free_debugger_inst_array() {
+    for (int i = 0; i < inst_to_display; i++) {
+        free(inst_list[i]);
+    }
+    free(inst_list);
+}
 
 void draw_debug(IO *io, Regs *regs) {
 
@@ -75,26 +103,20 @@ void draw_debug(IO *io, Regs *regs) {
     }
 
     // Instructions
-    char *inst_list[inst_to_display];
+    //char *inst_list[inst_to_display];
 
-    for (int i = 0; i < inst_to_display; i++) {
-        inst_list[i] = (char *) malloc(12);
-        if (inst_list[i] == NULL) i--;
+    //for (int i = 0; i < inst_to_display; i++) {
+    //    inst_list[i] = (char *) malloc(12);
+    //    if (inst_list[i] == NULL) i--;
+    //}
+    if (!IsKeyDown(KEY_P)) {
+        inst_scrollIndex = regs->pc / 2 - 10;
+        inst_active = regs->pc / 2;
     }
-
     GuiGroupBox(
         (Rectangle) {debug_x + 138, debug_y, 200, 620 },
         "Instructions");
-    int i = 0;
-    for (int j = regs->pc - inst_to_display;
-         j < regs->pc + inst_to_display;
-         j += 2) {
-        // idea to investigate this is reclycling memory values
-        sprintf(inst_list[i], "%.4X = %.2X%.2X\n",
-            j, regs->ram[j], regs->ram[j + 1]);
 
-        i++;
-    }
     GuiListViewEx(
         (Rectangle) { 
             debug_x + 148,
@@ -108,9 +130,9 @@ void draw_debug(IO *io, Regs *regs) {
         &inst_focus
     );
 
-    for (int i = 0; i < inst_to_display; i++) {
-        free(inst_list[i]);
-    }
+    //for (int i = 0; i < inst_to_display; i++) {
+    //    free(inst_list[i]);
+    //}
 
     // stack
     u16 address;

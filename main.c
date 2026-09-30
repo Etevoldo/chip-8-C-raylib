@@ -65,6 +65,9 @@ int main(int argc, char *argv[])
             if ((dropped_rom.count > 0)
                 && IsFileExtension(dropped_rom.paths[0], ".ch8")) {
                 load_rom(&regs, dropped_rom.paths[0]);
+                #ifdef DEBUG_ON
+                load_debugger_inst_array(&regs);
+                #endif
                 break;
             }
         }
@@ -108,6 +111,7 @@ int main(int argc, char *argv[])
         usleep(frame_time * 1000);
     }
 
+    free_debugger_inst_array();
     UnloadAudioStream(audio.stream);
     CloseAudioDevice();
     CloseWindow();
