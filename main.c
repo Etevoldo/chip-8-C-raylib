@@ -55,6 +55,7 @@ int main(int argc, char *argv[])
 
     Audio_data audio = init_audio();
 
+    bool is_paused = false;
     const int IPF = 11;        // instructions per frame
     const int frame_time = 17; // amount of time between frames in miliseconds
 
@@ -78,33 +79,35 @@ int main(int argc, char *argv[])
     load_font(&regs);
 
     while (!WindowShouldClose()) {
-        if (IsAudioStreamProcessed(audio.stream)) {
-            sample_audio_buffer(&audio);
-            UpdateAudioStream(audio.stream, audio.buffer, BUFFER_SIZE);
-        }
+
         // pause hack
-        while (IsKeyDown(KEY_P)) {
-            draw(&io, &regs);
-            usleep(frame_time * 1000);
-        }
+        if (IsKeyPressed(KEY_P)) is_paused = !is_paused;
 
-        if (regs.delay > 0) regs.delay -= 1;
-        if (regs.sound > 0) regs.sound -= 1;
+        if (!is_paused) {
 
-        // audio
-        if (regs.sound == 0) {
-            PauseAudioStream(audio.stream);
-        }
-        if (regs.sound) {
-            ResumeAudioStream(audio.stream);
-        }
+            if (IsAudioStreamProcessed(audio.stream)) {
+                sample_audio_buffer(&audio);
+                UpdateAudioStream(audio.stream, audio.buffer, BUFFER_SIZE);
+            }
 
-        handle_input(&io);
+            if (regs.delay > 0) regs.delay -= 1;
+            if (regs.sound > 0) regs.sound -= 1;
 
-        for (int i = 0; i < IPF; i++) {
-            //if (io.display_wait) break; // comment to disable screen wait
+            // audio
+            if (regs.sound == 0) {
+                PauseAudioStream(audio.stream);
+            }
+            if (regs.sound) {
+                ResumeAudioStream(audio.stream);
+            }
 
-            FDE(&regs, &io);
+            handle_input(&io);
+
+            for (int i = 0; i < IPF; i++) {
+                //if (io.display_wait) break; // comment to disable screen wait
+
+                FDE(&regs, &io);
+            }
         }
 
         draw(&io, &regs);
