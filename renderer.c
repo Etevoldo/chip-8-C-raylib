@@ -8,13 +8,12 @@
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
 #define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
 
-void draw(IO *io, Regs *regs)
+void draw(IO *io, Regs *regs, bool *is_paused)
 {
     io->display_wait = false;
     io->last_key_pressed = NO_KEY;
 
     BeginDrawing();
-
         ClearBackground(BLACK);
 
         // CHIP-8 display
@@ -28,8 +27,7 @@ void draw(IO *io, Regs *regs)
                 DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
             }
         }
-        draw_debug(io, regs);
-
+        draw_debug(io, regs, is_paused);
 
     EndDrawing();
 }
@@ -68,7 +66,7 @@ void free_debugger_inst_array() {
     free(inst_list);
 }
 
-void draw_debug(IO *io, Regs *regs) {
+void draw_debug(IO *io, Regs *regs, bool *is_paused) {
 
     const char *text;
 
@@ -103,13 +101,7 @@ void draw_debug(IO *io, Regs *regs) {
     }
 
     // Instructions
-    //char *inst_list[inst_to_display];
-
-    //for (int i = 0; i < inst_to_display; i++) {
-    //    inst_list[i] = (char *) malloc(12);
-    //    if (inst_list[i] == NULL) i--;
-    //}
-    if (!IsKeyDown(KEY_P)) {
+    if (!*is_paused) {
         inst_scrollIndex = regs->pc / 2 - 10;
         inst_active = regs->pc / 2;
     }
@@ -130,9 +122,19 @@ void draw_debug(IO *io, Regs *regs) {
         &inst_focus
     );
 
-    //for (int i = 0; i < inst_to_display; i++) {
-    //    free(inst_list[i]);
-    //}
+    // Pause/unpause and step
+    const int debug_buttons_y = debug_y + 285;
+    GuiIconName icon = *is_paused ? ICON_PLAYER_PLAY : ICON_PLAYER_PAUSE;
+    Rectangle pause_icon = (Rectangle) {
+        debug_x, debug_buttons_y, 30, 30};
+    if (GuiButton(pause_icon, GuiIconText(icon, ""))) {
+        *is_paused = !*is_paused;
+    }
+    Rectangle step_icon = (Rectangle) {
+        debug_x + 35, debug_buttons_y, 30, 30};
+    if (GuiButton(step_icon, GuiIconText(ICON_STEP_OVER, ""))) {
+        printf("hey!!!");
+    }
 
     // stack
     u16 address;

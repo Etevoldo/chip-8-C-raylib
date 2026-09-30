@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        draw(&io, &regs);
+        draw(&io, &regs, &is_paused);
         usleep(frame_time * 1000);
     }
 
@@ -110,11 +110,14 @@ int main(int argc, char *argv[])
             }
         }
 
-        draw(&io, &regs);
+        draw(&io, &regs, &is_paused);
         usleep(frame_time * 1000);
     }
 
+    #ifdef DEBUG_ON
     free_debugger_inst_array();
+    #endif
+
     UnloadAudioStream(audio.stream);
     CloseAudioDevice();
     CloseWindow();
