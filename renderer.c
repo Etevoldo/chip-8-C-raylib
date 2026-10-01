@@ -10,7 +10,7 @@
 #define RECT(x, y, xwidth, y_width) ((Rectangle) { x, y, xwidth, y_width })
 #define INST_DEBUG_STRING_SIZE 11 // "XXXX = XXXX"
 
-void draw(IO *io, Regs *regs, bool *is_paused)
+void draw(IO *io, Regs *regs, bool *is_paused, bool *is_step)
 {
     io->display_wait = false;
     io->last_key_pressed = NO_KEY;
@@ -29,7 +29,7 @@ void draw(IO *io, Regs *regs, bool *is_paused)
                 DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
             }
         }
-        draw_debug(io, regs, is_paused);
+        draw_debug(io, regs, is_paused, is_step);
 
     EndDrawing();
 }
@@ -69,7 +69,7 @@ void free_debugger_inst_array() {
     free(inst_list);
 }
 
-void draw_debug(IO *io, Regs *regs, bool *is_paused) {
+void draw_debug(IO *io, Regs *regs, bool *is_paused, bool *is_step) {
 
     const char *text;
 
@@ -105,8 +105,7 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
     }
     // Instructions
     if (!*is_paused) {
-        inst_scrollIndex = regs->pc / 2 - 10;
-        inst_active = regs->pc / 2;
+        update_scroll(regs);
     }
     GuiGroupBox(
         RECT(debug_x + 138, debug_y, 200, 620),
@@ -130,7 +129,7 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
     }
     Rectangle step_icon = RECT( debug_x + 35, debug_buttons_y, 30, 30);
     if (GuiButton(step_icon, GuiIconText(ICON_STEP_OVER, ""))) {
-        printf("hey!!!");
+        *is_step = true;
     }
 
     // stack
@@ -169,6 +168,12 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused) {
         RECT(debug_x + 69 + padding, debug_y + 340 + padding + label_spacing*3,
             label_width, label_height ),
         TextFormat("DT = %0.4X", regs->delay));
+}
+
+// update global variables of for the instructions scroll list
+void update_scroll(Regs *regs){
+    inst_scrollIndex = regs->pc / 2 - 10;
+    inst_active = regs->pc / 2;
 }
 
 void clear_display(bool display[])

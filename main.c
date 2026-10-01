@@ -20,6 +20,7 @@ void load_font(Regs *regs);
 void init_audio_buffer(float buffer[], int *sineIndex);
 int map_key(int key);
 void handle_input(IO *io);
+void main_cycle(IO *io, Regs *regs, Audio_data *audio, int IPF);
 
 int main(int argc, char *argv[])
 {
@@ -56,6 +57,7 @@ int main(int argc, char *argv[])
     Audio_data audio = init_audio();
 
     bool is_paused = false;
+    bool is_step = false;
     const int IPF = 11;        // instructions per frame
     const int frame_time = 17; // amount of time between frames in miliseconds
 
@@ -72,7 +74,7 @@ int main(int argc, char *argv[])
                 break;
             }
         }
-        draw(&io, &regs, &is_paused);
+        draw(&io, &regs, &is_paused, &is_step);
         usleep(frame_time * 1000);
     }
 
@@ -84,33 +86,15 @@ int main(int argc, char *argv[])
         if (IsKeyPressed(KEY_P)) is_paused = !is_paused;
 
         if (!is_paused) {
-
-            if (IsAudioStreamProcessed(audio.stream)) {
-                sample_audio_buffer(&audio);
-                UpdateAudioStream(audio.stream, audio.buffer, BUFFER_SIZE);
-            }
-
-            if (regs.delay > 0) regs.delay -= 1;
-            if (regs.sound > 0) regs.sound -= 1;
-
-            // audio
-            if (regs.sound == 0) {
-                PauseAudioStream(audio.stream);
-            }
-            if (regs.sound) {
-                ResumeAudioStream(audio.stream);
-            }
-
-            handle_input(&io);
-
-            for (int i = 0; i < IPF; i++) {
-                //if (io.display_wait) break; // comment to disable screen wait
-
-                FDE(&regs, &io);
-            }
+            main_cycle(&io, &regs, &audio, IPF);
+        }
+        else if (is_paused && is_step) {
+            main_cycle(&io, &regs, &audio, 1);
+            update_scroll(&regs);
+            is_step = false;
         }
 
-        draw(&io, &regs, &is_paused);
+        draw(&io, &regs, &is_paused, &is_step);
         usleep(frame_time * 1000);
     }
 
@@ -122,6 +106,32 @@ int main(int argc, char *argv[])
     CloseAudioDevice();
     CloseWindow();
     return 0;
+}
+
+void main_cycle(IO *io, Regs *regs, Audio_data *audio, int IPF) {
+    if (IsAudioStreamProcessed(audio->stream)) {
+        sample_audio_buffer(audio);
+        UpdateAudioStream(audio->stream, audio->buffer, BUFFER_SIZE);
+    }
+
+    if (regs->delay > 0) regs->delay -= 1;
+    if (regs->sound > 0) regs->sound -= 1;
+
+    // audio
+    if (regs->sound == 0) {
+        PauseAudioStream(audio->stream);
+    }
+    if (regs->sound) {
+        ResumeAudioStream(audio->stream);
+    }
+
+    handle_input(io);
+
+    for (int i = 0; i < IPF; i++) {
+        //if (io.display_wait) break; // comment to disable screen wait
+
+        FDE(regs, io);
+    }
 }
 
 void init_audio_buffer(float buffer[], int *sineIndex) {
