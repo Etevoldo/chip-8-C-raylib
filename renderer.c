@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "renderer.h"
 #include "raylib.h"
 #include "types.h"
-#include "renderer.h"
 #include "raygui.h"
 
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
@@ -10,7 +10,7 @@
 #define RECT(x, y, xwidth, y_width) ((Rectangle) { x, y, xwidth, y_width })
 #define INST_DEBUG_STRING_SIZE 11 // "XXXX = XXXX"
 
-void draw(IO *io, Regs *regs, bool *is_paused, bool *is_step)
+void draw(IO *io, Regs *regs, GuiVars *gui_vars)
 {
     io->display_wait = false;
     io->last_key_pressed = NO_KEY;
@@ -29,47 +29,52 @@ void draw(IO *io, Regs *regs, bool *is_paused, bool *is_step)
                 DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
             }
         }
-        draw_debug(io, regs, is_paused, is_step);
+        draw_debug(io, regs, gui_vars);
 
     EndDrawing();
 }
 
-// boooooo global variables
-const int inst_to_display = RAM_SIZE / 2;
-int inst_active = inst_to_display / 2;
-int inst_focus = -1;
-int inst_scrollIndex = inst_to_display / 2 - 10;
-char **inst_list;
+GuiVars init_gui_vars() {
+    return (GuiVars) {
+        .inst_to_display = RAM_SIZE / 2,
+        .inst_active = RAM_SIZE / 4,
+        .inst_focus = -1,
+        .inst_scrollIndex = RAM_SIZE / 4 - 10,
+        .inst_list = NULL,
+        .is_paused = false,
+        .is_step = false,
+    };
+}
 
-void load_debugger_inst_array(Regs *regs) {
-    inst_list = (char **) malloc(inst_to_display * sizeof(char **));
-    if (inst_list == NULL) {
+void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars) {
+    gui_vars->inst_list = (char **) malloc(INST_TO_DISPLAY * sizeof(char **));
+    if (gui_vars->inst_list == NULL) {
         exit(EXIT_FAILURE);
     }
 
-    for (int i = 0; i < inst_to_display; i++) {
-        inst_list[i] = (char *) malloc(INST_DEBUG_STRING_SIZE + 1);
-        if (inst_list[i] == NULL) {
+    for (int i = 0; i < INST_TO_DISPLAY; i++) {
+        gui_vars->inst_list[i] = (char *) malloc(INST_DEBUG_STRING_SIZE + 1);
+        if (gui_vars->inst_list[i] == NULL) {
             exit(EXIT_FAILURE);
         }
     }
 
-    for (int j = 0, i = 0; i < inst_to_display; j += 2, i++) {
+    for (int j = 0, i = 0; i < INST_TO_DISPLAY; j += 2, i++) {
         // idea to investigate this is reclycling memory values
-        sprintf(inst_list[i], "%.4X = %.2X%.2X\n",
+        sprintf(gui_vars->inst_list[i], "%.4X = %.2X%.2X\n",
             j, regs->ram[j], regs->ram[j + 1]);
     }
 }
 
 // free debug instructions string list
-void free_debugger_inst_array() {
-    for (int i = 0; i < inst_to_display; i++) {
+void free_debugger_inst_array(char **inst_list) {
+    for (int i = 0; i < INST_TO_DISPLAY; i++) {
         free(inst_list[i]);
     }
     free(inst_list);
 }
 
-void draw_debug(IO *io, Regs *regs, bool *is_paused, bool *is_step) {
+void draw_debug(IO *io, Regs *regs, GuiVars *gui_vars) {
 
     const char *text;
 
@@ -104,8 +109,8 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused, bool *is_step) {
             text);
     }
     // Instructions
-    if (!*is_paused) {
-        update_scroll(regs);
+    if (!gui_vars-> is_paused) {
+        update_scroll(regs, gui_vars);
     }
     GuiGroupBox(
         RECT(debug_x + 138, debug_y, 200, 620),
@@ -113,23 +118,23 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused, bool *is_step) {
 
     GuiListViewEx(
         RECT(debug_x + 148, debug_y + 10, 180, 600),
-        inst_list,
-        inst_to_display,
-        &inst_scrollIndex,
-        &inst_active,
-        &inst_focus
+        gui_vars->inst_list,
+        gui_vars->inst_to_display,
+        &(gui_vars->inst_scrollIndex),
+        &(gui_vars->inst_active),
+        &(gui_vars->inst_focus)
     );
 
     // Pause/unpause and step
     const int debug_buttons_y = debug_y + 285;
-    GuiIconName icon = *is_paused ? ICON_PLAYER_PLAY : ICON_PLAYER_PAUSE;
+    GuiIconName icon = gui_vars->is_paused ? ICON_PLAYER_PLAY : ICON_PLAYER_PAUSE;
     Rectangle pause_icon = RECT(debug_x, debug_buttons_y, 30, 30);
     if (GuiButton(pause_icon, GuiIconText(icon, ""))) {
-        *is_paused = !*is_paused;
+        gui_vars->is_paused = !gui_vars->is_paused;
     }
     Rectangle step_icon = RECT( debug_x + 35, debug_buttons_y, 30, 30);
     if (GuiButton(step_icon, GuiIconText(ICON_STEP_OVER, ""))) {
-        *is_step = true;
+        gui_vars->is_step = true;
     }
 
     // stack
@@ -171,9 +176,9 @@ void draw_debug(IO *io, Regs *regs, bool *is_paused, bool *is_step) {
 }
 
 // update global variables of for the instructions scroll list
-void update_scroll(Regs *regs){
-    inst_scrollIndex = regs->pc / 2 - 10;
-    inst_active = regs->pc / 2;
+void update_scroll(Regs *regs, GuiVars *gui_vars){
+    gui_vars->inst_scrollIndex = regs->pc / 2 - 10;
+    gui_vars->inst_active = regs->pc / 2;
 }
 
 void clear_display(bool display[])

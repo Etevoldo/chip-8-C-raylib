@@ -20,7 +20,7 @@ void load_font(Regs *regs);
 void init_audio_buffer(float buffer[], int *sineIndex);
 int map_key(int key);
 void handle_input(IO *io);
-void main_cycle(IO *io, Regs *regs, Audio_data *audio, int IPF);
+void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars);
 
 int main(int argc, char *argv[])
 {
@@ -56,9 +56,9 @@ int main(int argc, char *argv[])
 
     Audio_data audio = init_audio();
 
-    bool is_paused = false;
-    bool is_step = false;
-    const int IPF = 11;        // instructions per frame
+    GuiVars gui_vars = init_gui_vars();
+    //bool is_paused = false;
+    //bool is_step = false;
     const int frame_time = 17; // amount of time between frames in miliseconds
 
     // Insert ROM gui pre-loop
@@ -69,12 +69,12 @@ int main(int argc, char *argv[])
                 && IsFileExtension(dropped_rom.paths[0], ".ch8")) {
                 load_rom(&regs, dropped_rom.paths[0]);
                 #ifdef DEBUG_ON
-                load_debugger_inst_array(&regs);
+                load_debugger_inst_array(&regs, &gui_vars);
                 #endif
                 break;
             }
         }
-        draw(&io, &regs, &is_paused, &is_step);
+        draw(&io, &regs, &gui_vars);
         usleep(frame_time * 1000);
     }
 
@@ -83,23 +83,16 @@ int main(int argc, char *argv[])
     while (!WindowShouldClose()) {
 
         // pause hack
-        if (IsKeyPressed(KEY_P)) is_paused = !is_paused;
+        if (IsKeyPressed(KEY_P)) gui_vars.is_paused = !gui_vars.is_paused;
 
-        if (!is_paused) {
-            main_cycle(&io, &regs, &audio, IPF);
-        }
-        else if (is_paused && is_step) {
-            main_cycle(&io, &regs, &audio, 1);
-            update_scroll(&regs);
-            is_step = false;
-        }
+        main_cycle(&io, &regs, &audio, &gui_vars);
 
-        draw(&io, &regs, &is_paused, &is_step);
+        draw(&io, &regs, &gui_vars);
         usleep(frame_time * 1000);
     }
 
     #ifdef DEBUG_ON
-    free_debugger_inst_array();
+    free_debugger_inst_array(gui_vars.inst_list);
     #endif
 
     UnloadAudioStream(audio.stream);
@@ -108,7 +101,7 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void main_cycle(IO *io, Regs *regs, Audio_data *audio, int IPF) {
+void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
     if (IsAudioStreamProcessed(audio->stream)) {
         sample_audio_buffer(audio);
         UpdateAudioStream(audio->stream, audio->buffer, BUFFER_SIZE);
@@ -118,19 +111,28 @@ void main_cycle(IO *io, Regs *regs, Audio_data *audio, int IPF) {
     if (regs->sound > 0) regs->sound -= 1;
 
     // audio
-    if (regs->sound == 0) {
-        PauseAudioStream(audio->stream);
-    }
-    if (regs->sound) {
-        ResumeAudioStream(audio->stream);
-    }
+    if (regs->sound == 0) PauseAudioStream(audio->stream);
+    if (regs->sound) ResumeAudioStream(audio->stream);
 
     handle_input(io);
 
+    const int IPF = 11;        // instructions per frame
     for (int i = 0; i < IPF; i++) {
         //if (io.display_wait) break; // comment to disable screen wait
 
+        while (gui_vars->is_paused) {
+            // step 1 instruction
+            if (gui_vars->is_step) {
+                printf("step!");
+                gui_vars->is_step = false;
+                break;
+            }
+            if (WindowShouldClose()) return;
+            draw(io, regs, gui_vars);
+        }
+
         FDE(regs, io);
+        update_scroll(regs, gui_vars);
     }
 }
 
