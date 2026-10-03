@@ -17,7 +17,6 @@
 
 int load_rom(Regs *regs, char *file_name);
 void load_font(Regs *regs);
-void init_audio_buffer(float buffer[], int *sineIndex);
 int map_key(int key);
 void handle_input(IO *io);
 void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars);
@@ -142,23 +141,6 @@ void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
 
         FDE(regs, io);
         update_scroll(regs, gui_vars);
-    }
-}
-
-void init_audio_buffer(float buffer[], int *sineIndex) {
-    const int sineFrequency = 440;
-
-    for (int i = 0; i < BUFFER_SIZE; i++) {
-        int wavelength = SAMPLE_RATE / sineFrequency;
-        buffer[i] = sinf(2* PI * (*sineIndex)/wavelength) > 0 ? 1 : -1;
-        //if (sinf(2*PI*sineIndex/wavelength) > 0.0f) {
-        //    buffer[i] = 1.0f;
-        //}
-        //else {
-        //    buffer[i] = -1.0f;
-        //}
-        (*sineIndex)++;
-        if ((*sineIndex) >= wavelength) (*sineIndex) = 0;
     }
 }
 
