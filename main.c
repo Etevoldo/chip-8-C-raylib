@@ -21,6 +21,7 @@ void init_audio_buffer(float buffer[], int *sineIndex);
 int map_key(int key);
 void handle_input(IO *io);
 void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars);
+void close_services(Audio_data *audio);
 
 int main(int argc, char *argv[])
 {
@@ -55,18 +56,16 @@ int main(int argc, char *argv[])
     };
 
     Audio_data audio = init_audio();
-
     GuiVars gui_vars = init_gui_vars();
-    //bool is_paused = false;
-    //bool is_step = false;
+
     const int frame_time = 17; // amount of time between frames in miliseconds
 
     // Insert ROM gui pre-loop
-    while (!WindowShouldClose()) {
+    while (true) {
         if (IsFileDropped()) {
             FilePathList dropped_rom = LoadDroppedFiles();
-            if ((dropped_rom.count > 0)
-                && IsFileExtension(dropped_rom.paths[0], ".ch8")) {
+            if ((dropped_rom.count > 0) &&
+                 IsFileExtension(dropped_rom.paths[0], ".ch8")) {
                 load_rom(&regs, dropped_rom.paths[0]);
                 #ifdef DEBUG_ON
                 load_debugger_inst_array(&regs, &gui_vars);
@@ -76,6 +75,11 @@ int main(int argc, char *argv[])
         }
         draw(&io, &regs, &gui_vars);
         usleep(frame_time * 1000);
+
+        if (WindowShouldClose()) {
+            close_services(&audio);
+            return 0 ;
+        }
     }
 
     load_font(&regs);
@@ -94,11 +98,16 @@ int main(int argc, char *argv[])
     #ifdef DEBUG_ON
     free_debugger_inst_array(gui_vars.inst_list);
     #endif
+    close_services(&audio);
 
-    UnloadAudioStream(audio.stream);
+    return 0;
+}
+
+//unload all resources and close window
+void close_services(Audio_data *audio) {
+    UnloadAudioStream(audio->stream);
     CloseAudioDevice();
     CloseWindow();
-    return 0;
 }
 
 void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
