@@ -1,6 +1,7 @@
 #include "audio.h"
 
-Audio_data init_audio() {
+Audio_data init_audio()
+{
     // initializing Audio
     InitAudioDevice();
 
@@ -21,7 +22,8 @@ Audio_data init_audio() {
     };
 }
 
-void sample_audio_buffer(Audio_data *audio) {
+void sample_audio_buffer(Audio_data *audio)
+{
     for (int i = 0; i < BUFFER_SIZE; i++) {
         int wavelength = SAMPLE_RATE / audio->frequency;
 
@@ -36,7 +38,8 @@ void sample_audio_buffer(Audio_data *audio) {
     }
 }
 
-void init_audio_buffer(float buffer[], int *sineIndex) {
+void init_audio_buffer(float buffer[], int *sineIndex)
+{
     const int sineFrequency = 440;
 
     for (int i = 0; i < BUFFER_SIZE; i++) {

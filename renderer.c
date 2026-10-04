@@ -35,7 +35,8 @@ void draw(IO *io, Regs *regs, GuiVars *gui_vars)
     EndDrawing();
 }
 
-GuiVars init_gui_vars() {
+GuiVars init_gui_vars()
+{
     return (GuiVars) {
         .inst_to_display = RAM_SIZE / 2,
         .inst_active = RAM_SIZE / 4,
@@ -49,7 +50,8 @@ GuiVars init_gui_vars() {
     };
 }
 
-void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars) {
+void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars)
+{
     const int gui_y = DISPLAY_HEIGHT * SCALE + BORDER_WIDTH;
     const int gui_x = BORDER_WIDTH;
 
@@ -72,7 +74,8 @@ void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars) {
         2000.0f);
 }
 
-void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars) {
+void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars)
+{
     gui_vars->inst_list = (char **) malloc(INST_TO_DISPLAY * sizeof(char **));
     if (gui_vars->inst_list == NULL) {
         exit(EXIT_FAILURE);
@@ -93,14 +96,16 @@ void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars) {
 }
 
 // free debug instructions string list
-void free_debugger_inst_array(char **inst_list) {
+void free_debugger_inst_array(char **inst_list)
+{
     for (int i = 0; i < INST_TO_DISPLAY; i++) {
         free(inst_list[i]);
     }
     free(inst_list);
 }
 
-void draw_debug(IO *io, Regs *regs, GuiVars *gui_vars) {
+void draw_debug(IO *io, Regs *regs, GuiVars *gui_vars)
+{
 
     const char *text;
 
@@ -202,7 +207,8 @@ void draw_debug(IO *io, Regs *regs, GuiVars *gui_vars) {
 }
 
 // update global variables of for the instructions scroll list
-void update_scroll(Regs *regs, GuiVars *gui_vars){
+void update_scroll(Regs *regs, GuiVars *gui_vars)
+{
     gui_vars->inst_scrollIndex = regs->pc / 2 - 10;
     gui_vars->inst_active = regs->pc / 2;
 }
@@ -217,7 +223,8 @@ void clear_display(bool display[])
     }
 }
 
-bool drawPixel(int x, int y, bool isBitOn, bool display[]) {
+bool drawPixel(int x, int y, bool isBitOn, bool display[])
+{
     int index = x + y * DISPLAY_WIDTH;
     bool collision = false;
 

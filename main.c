@@ -111,13 +111,15 @@ int main(int argc, char *argv[])
 }
 
 //unload all resources and close window
-void close_services(Audio_data *audio) {
+void close_services(Audio_data *audio)
+{
     UnloadAudioStream(audio->stream);
     CloseAudioDevice();
     CloseWindow();
 }
 
-bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
+bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars)
+{
     if (IsAudioStreamProcessed(audio->stream)) {
         sample_audio_buffer(audio);
         UpdateAudioStream(audio->stream, audio->buffer, BUFFER_SIZE);
@@ -173,7 +175,8 @@ void handle_input(IO *io)
 
 }
 
-int map_key(int key) {
+int map_key(int key)
+{
     switch (key){
         case KEY_ONE:   return 0x1;
         case KEY_TWO:   return 0x2;

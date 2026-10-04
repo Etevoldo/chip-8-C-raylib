@@ -5,8 +5,8 @@
 #include "stack.h"
 #include "renderer.h"
 
-void FDE(Regs *regs, IO *io) {
-
+void FDE(Regs *regs, IO *io)
+{
     // for short
     u16 pc = regs->pc;
     // fetch
