@@ -91,8 +91,12 @@ int main(int argc, char *argv[])
         main_cycle(&io, &regs, &audio, &gui_vars);
 
         draw(&io, &regs, &gui_vars);
-        if (audio.volume != gui_vars.vol_slider_value) {
-            audio.volume = gui_vars.vol_slider_value;
+
+        if (audio.volume != gui_vars.audio_vol_slider_value) {
+            audio.volume = gui_vars.audio_vol_slider_value;
+        }
+        if (audio.frequency != (int) gui_vars.audio_freq) {
+            audio.frequency = (int) gui_vars.audio_freq;
         }
 
         usleep(frame_time * 1000);

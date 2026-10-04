@@ -44,20 +44,32 @@ GuiVars init_gui_vars() {
         .inst_list = NULL,
         .is_paused = false,
         .is_step = false,
-        .vol_slider_value = 0.5f,
+        .audio_vol_slider_value = 0.5f,
+        .audio_freq = 440,
     };
 }
 
 void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars) {
     const int gui_y = DISPLAY_HEIGHT * SCALE + BORDER_WIDTH;
     const int gui_x = BORDER_WIDTH;
+
+    // volume slider
     GuiSlider(
         RECT(gui_x + 20, gui_y, 200, 20),
         "Vol",
-        TextFormat("%2.f%%", gui_vars->vol_slider_value * 100),
-        &gui_vars->vol_slider_value,
+        TextFormat("%2.f%%", gui_vars->audio_vol_slider_value * 100),
+        &gui_vars->audio_vol_slider_value,
         0.0f,
         1.0f);
+
+    // volume Frequency slider
+    GuiSlider(
+        RECT(gui_x + 20, gui_y + 40, 200, 20),
+        "Freq",
+        TextFormat("%dHz", (int)gui_vars->audio_freq),
+        &gui_vars->audio_freq,
+        50.0f,
+        2000.0f);
 }
 
 void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars) {
