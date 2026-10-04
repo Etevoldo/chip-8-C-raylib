@@ -19,7 +19,7 @@ int load_rom(Regs *regs, char *file_name);
 void load_font(Regs *regs);
 int map_key(int key);
 void handle_input(IO *io);
-void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars);
+bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars);
 void close_services(Audio_data *audio);
 
 int main(int argc, char *argv[])
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
         // pause hack
         if (IsKeyPressed(KEY_P)) gui_vars.is_paused = !gui_vars.is_paused;
 
-        main_cycle(&io, &regs, &audio, &gui_vars);
+        if (!main_cycle(&io, &regs, &audio, &gui_vars)) break;
 
         draw(&io, &regs, &gui_vars);
 
@@ -117,7 +117,7 @@ void close_services(Audio_data *audio) {
     CloseWindow();
 }
 
-void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
+bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
     if (IsAudioStreamProcessed(audio->stream)) {
         sample_audio_buffer(audio);
         UpdateAudioStream(audio->stream, audio->buffer, BUFFER_SIZE);
@@ -139,17 +139,17 @@ void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
         while (gui_vars->is_paused) {
             // step 1 instruction
             if (gui_vars->is_step) {
-                printf("step!");
                 gui_vars->is_step = false;
                 break;
             }
-            if (WindowShouldClose()) return;
+            if (WindowShouldClose()) return false;
             draw(io, regs, gui_vars);
         }
 
         FDE(regs, io);
         update_scroll(regs, gui_vars);
     }
+    return true;
 }
 
 void handle_input(IO *io)
