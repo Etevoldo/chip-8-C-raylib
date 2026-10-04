@@ -31,6 +31,7 @@ void draw(IO *io, Regs *regs, GuiVars *gui_vars)
         }
         draw_debug(io, regs, gui_vars);
 
+        draw_gui(io, regs, gui_vars);
     EndDrawing();
 }
 
@@ -45,6 +46,18 @@ GuiVars init_gui_vars() {
         .is_step = false,
         .vol_slider_value = 0.5f,
     };
+}
+
+void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars) {
+    const int gui_y = DISPLAY_HEIGHT * SCALE + BORDER_WIDTH;
+    const int gui_x = BORDER_WIDTH;
+    GuiSlider(
+        RECT(gui_x + 20, gui_y, 200, 20),
+        "Vol",
+        TextFormat("%2.f%%", gui_vars->vol_slider_value * 100),
+        &gui_vars->vol_slider_value,
+        0.0f,
+        1.0f);
 }
 
 void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars) {
