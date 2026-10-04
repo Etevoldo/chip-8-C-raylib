@@ -43,6 +43,7 @@ GuiVars init_gui_vars() {
         .inst_list = NULL,
         .is_paused = false,
         .is_step = false,
+        .vol_slider_value = 0.5f,
     };
 }
 

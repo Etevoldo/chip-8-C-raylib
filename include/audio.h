@@ -12,6 +12,8 @@ typedef struct {
     AudioStream stream;
     float buffer[BUFFER_SIZE];
     int sample_step;
+    float volume;
+    int frequency;
 } Audio_data;
 
 Audio_data init_audio();

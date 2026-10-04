@@ -15,17 +15,22 @@ Audio_data init_audio() {
     return (Audio_data) {
         .stream = stream,
         .buffer = { 0 },
-        .sample_step = sample_step };
+        .sample_step = sample_step,
+        .volume = 0.5f,   // volume between 0 to 1
+        .frequency = 440  // frequency of the square have in hertz
+    };
 }
 
 void sample_audio_buffer(Audio_data *audio) {
-    const int freq = 440;
-
     for (int i = 0; i < BUFFER_SIZE; i++) {
-        int wavelength = SAMPLE_RATE / freq;
+        int wavelength = SAMPLE_RATE / audio->frequency;
+
         // square wave
         audio->buffer[i] = sinf(
-            2* PI * freq * audio->sample_step/SAMPLE_RATE) > 0 ? 1 : -1;
+            2* PI * audio->frequency
+            * audio->sample_step/SAMPLE_RATE) > 0 ? 1 : -1;
+
+        audio->buffer[i] *= audio->volume * 0.1f;
         audio->sample_step++;
         if (audio->sample_step >= wavelength) audio->sample_step = 0;
     }

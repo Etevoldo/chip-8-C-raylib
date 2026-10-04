@@ -12,6 +12,7 @@ typedef struct {
     char **inst_list;
     bool is_paused;
     bool is_step;
+    float vol_slider_value;
 } GuiVars;
 
 GuiVars init_gui_vars();

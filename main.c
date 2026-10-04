@@ -91,6 +91,10 @@ int main(int argc, char *argv[])
         main_cycle(&io, &regs, &audio, &gui_vars);
 
         draw(&io, &regs, &gui_vars);
+        if (audio.volume != gui_vars.vol_slider_value) {
+            audio.volume = gui_vars.vol_slider_value;
+        }
+
         usleep(frame_time * 1000);
     }
 
@@ -120,7 +124,7 @@ void main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars) {
 
     // audio
     if (regs->sound == 0) PauseAudioStream(audio->stream);
-    if (regs->sound) ResumeAudioStream(audio->stream);
+    ResumeAudioStream(audio->stream);
 
     handle_input(io);
 
