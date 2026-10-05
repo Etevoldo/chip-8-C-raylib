@@ -47,6 +47,10 @@ GuiVars init_gui_vars()
         .is_step = false,
         .audio_vol_slider_value = 0.5f,
         .audio_freq = 440,
+        .is_display_wait = true,
+        .is_8xy6e_shift = true,
+        .is_bnnn_vx = false,
+        .is_fx565_change_I = false
     };
 }
 
@@ -72,6 +76,25 @@ void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars)
         &gui_vars->audio_freq,
         50.0f,
         2000.0f);
+
+    const int second_row_x = gui_x + 270;
+    // Quirks
+    GuiCheckBox(
+        RECT(second_row_x, gui_y, 20, 20),
+        "display wait",
+        &gui_vars->is_display_wait);
+    GuiCheckBox(
+        RECT(second_row_x, gui_y + 40, 20, 20),
+        "8xy6 & 8xye: Vy into Vx before shift",
+        &gui_vars->is_8xy6e_shift);
+    GuiCheckBox(
+        RECT(second_row_x, gui_y + 80, 20, 20),
+        "bxnn instead of bnnn",
+        &gui_vars->is_bnnn_vx);
+    GuiCheckBox(
+        RECT(second_row_x, gui_y + 120, 20, 20),
+        "fx55 & fx65: update I",
+        &gui_vars->is_fx565_change_I);
 }
 
 void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars)

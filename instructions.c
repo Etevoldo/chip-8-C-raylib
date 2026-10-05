@@ -5,7 +5,7 @@
 #include "stack.h"
 #include "renderer.h"
 
-void FDE(Regs *regs, IO *io)
+void FDE(Regs *regs, IO *io, Quirks quirks)
 {
     // for short
     u16 pc = regs->pc;
@@ -63,7 +63,7 @@ void FDE(Regs *regs, IO *io)
         regs->v[x] += kk;
         break;
     case 0x8000:
-        op_8000(x, y, logical_type, regs);
+        op_8000(x, y, logical_type, regs, quirks);
         break;
     case 0x9000:
         if (regs->v[x] != regs->v[y]) regs->pc += 2;
@@ -72,7 +72,8 @@ void FDE(Regs *regs, IO *io)
         regs->index = nnn;
         break;
     case 0xB000:
-        regs->pc = regs->v[0x0] + nnn;
+        if (quirks.is_bnnn_vx) { regs->pc = regs->v[n] + kk; }
+        else regs->pc = regs->v[0x0] + nnn;
         break;
     case 0xC000:
         srand((unsigned) time(NULL));
@@ -96,7 +97,7 @@ void FDE(Regs *regs, IO *io)
         }
         break;
     case 0xF000:
-        op_FX00(x, other_types, regs, io);
+        op_FX00(x, other_types, regs, io, quirks);
         break;
     default:
         break;
@@ -135,7 +136,9 @@ void op_DXYN(u8 x_index, u8 y_index, int n, Regs *regs, bool display[])
     }
 }
 
-void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
+void op_8000(
+    u8 x_index, u8 y_index, int logical_type,
+    Regs *regs, Quirks quirks)
 {
     int sub, sum, shifted_bit;
     u8 *v = regs->v;
@@ -168,8 +171,9 @@ void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
         v[0xF] = (sub < 0) ? 0 : 1;
         break;
     case 0x0006:
-        v[x_index] = v[y_index];
+        if (quirks.is_8xy6e_shift_vy_into_vx) { v[x_index] = v[y_index]; }
         shifted_bit = v[x_index] & 0b00000001;
+
         v[x_index] = v[x_index] >> 1;
 
         v[0xF] = (shifted_bit == 1) ? 1 : 0;
@@ -181,8 +185,9 @@ void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
         v[0xF] = (sub < 0) ? 0 : 1;
         break;
     case 0x000E:
-        v[x_index] = v[y_index];
+        if (quirks.is_8xy6e_shift_vy_into_vx) { v[x_index] = v[y_index]; }
         int shifted_bit = (v[x_index] & 0b10000000) >> 7;
+
         v[x_index] = v[x_index] << 1;
 
         v[0xF] = (shifted_bit == 1) ? 1 : 0;
@@ -192,7 +197,7 @@ void op_8000(u8 x_index, u8 y_index, int logical_type, Regs *regs)
     }
 }
 
-void op_FX00(u8 x_index, int other_type, Regs *regs, IO *io)
+void op_FX00(u8 x_index, int other_type, Regs *regs, IO *io, Quirks quirks)
 {
     switch (other_type) {
     case 0x0007:
@@ -233,12 +238,24 @@ void op_FX00(u8 x_index, int other_type, Regs *regs, IO *io)
         }
         break;
     case 0x0055:
+        if (quirks.is_fx565_change_I) {
+            for (int i = 0; i < x_index; i++, regs->index++) {
+                regs->ram[regs->index] = regs->v[i];
+            }
+            break;
+        }
         for (int i = 0; i <= x_index; i++) {
             regs->ram[regs->index + i] = regs->v[i];
         }
         regs->index += x_index + 1;
         break;
     case 0x0065:
+        if (quirks.is_fx565_change_I) {
+            for (int i = 0; i <= x_index; i++, regs->index++) {
+                regs->v[i] = regs->ram[regs->index];
+            }
+            break;
+        }
         for (int i = 0; i <= x_index; i++) {
             regs->v[i] = regs->ram[regs->index + i];
         }

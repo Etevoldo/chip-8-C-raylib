@@ -14,6 +14,10 @@ typedef struct {
     bool is_step;
     float audio_vol_slider_value;
     float audio_freq;
+    bool is_display_wait;
+    bool is_8xy6e_shift;
+    bool is_bnnn_vx;
+    bool is_fx565_change_I;
 } GuiVars;
 
 GuiVars init_gui_vars();

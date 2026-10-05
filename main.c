@@ -19,7 +19,8 @@ int load_rom(Regs *regs, char *file_name);
 void load_font(Regs *regs);
 int map_key(int key);
 void handle_input(IO *io);
-bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars);
+bool main_cycle(IO *io, Regs *regs, Audio_data *audio, 
+    GuiVars *gui_vars, Quirks quirks);
 void close_services(Audio_data *audio);
 
 int main(int argc, char *argv[])
@@ -52,6 +53,13 @@ int main(int argc, char *argv[])
         .keys_down = { false },
         .last_key_pressed = NO_KEY,
         .display_wait = false,
+    };
+
+    Quirks quirks = (Quirks) {
+        .is_display_wait = true,
+        .is_8xy6e_shift_vy_into_vx = true,
+        .is_bnnn_vx = false,
+        .is_fx565_change_I = false
     };
 
     Audio_data audio = init_audio();
@@ -88,16 +96,21 @@ int main(int argc, char *argv[])
         // pause hack
         if (IsKeyPressed(KEY_P)) gui_vars.is_paused = !gui_vars.is_paused;
 
-        if (!main_cycle(&io, &regs, &audio, &gui_vars)) break;
+        if (!main_cycle(&io, &regs, &audio, &gui_vars, quirks)) break;
 
         draw(&io, &regs, &gui_vars);
 
+        // update audio parameters and quirks based on gui controls
         if (audio.volume != gui_vars.audio_vol_slider_value) {
             audio.volume = gui_vars.audio_vol_slider_value;
         }
         if (audio.frequency != (int) gui_vars.audio_freq) {
             audio.frequency = (int) gui_vars.audio_freq;
         }
+        quirks.is_display_wait = gui_vars.is_display_wait;
+        quirks.is_8xy6e_shift_vy_into_vx = gui_vars.is_8xy6e_shift;
+        quirks.is_bnnn_vx = gui_vars.is_bnnn_vx;
+        quirks.is_fx565_change_I = gui_vars.is_fx565_change_I;
 
         usleep(frame_time * 1000);
     }
@@ -118,7 +131,8 @@ void close_services(Audio_data *audio)
     CloseWindow();
 }
 
-bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars)
+bool main_cycle(IO *io, Regs *regs, Audio_data *audio,
+    GuiVars *gui_vars, Quirks quirks)
 {
     if (IsAudioStreamProcessed(audio->stream)) {
         sample_audio_buffer(audio);
@@ -130,13 +144,13 @@ bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars)
 
     // audio
     if (regs->sound == 0) PauseAudioStream(audio->stream);
-    ResumeAudioStream(audio->stream);
+    if (regs->sound) ResumeAudioStream(audio->stream);
 
     handle_input(io);
 
     const int IPF = 11;        // instructions per frame
     for (int i = 0; i < IPF; i++) {
-        //if (io.display_wait) break; // comment to disable screen wait
+        if (io->display_wait && quirks.is_display_wait) break; // comment to disable screen wait
 
         while (gui_vars->is_paused) {
             // step 1 instruction
@@ -148,7 +162,7 @@ bool main_cycle(IO *io, Regs *regs, Audio_data *audio, GuiVars *gui_vars)
             draw(io, regs, gui_vars);
         }
 
-        FDE(regs, io);
+        FDE(regs, io, quirks);
         update_scroll(regs, gui_vars);
     }
     return true;
