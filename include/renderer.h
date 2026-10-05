@@ -14,6 +14,7 @@ typedef struct {
     bool is_step;
     float audio_vol_slider_value;
     float audio_freq;
+    int IPF;
     bool is_display_wait;
     bool is_8xy6e_shift;
     bool is_bnnn_vx;

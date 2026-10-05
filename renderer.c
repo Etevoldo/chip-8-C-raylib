@@ -47,6 +47,7 @@ GuiVars init_gui_vars()
         .is_step = false,
         .audio_vol_slider_value = 0.5f,
         .audio_freq = 440,
+        .IPF = 15,
         .is_display_wait = true,
         .is_8xy6e_shift = true,
         .is_bnnn_vx = false,
@@ -76,6 +77,17 @@ void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars)
         &gui_vars->audio_freq,
         50.0f,
         2000.0f);
+
+    // IPF
+    float IPF = (float) gui_vars->IPF;
+    GuiSlider(
+        RECT(gui_x + 20, gui_y + 80, 200, 20),
+        "IPF",
+        TextFormat("%dIPF", (int)IPF),
+        &IPF,
+        1.0f,
+        25.0f);
+    gui_vars->IPF = (int) IPF;
 
     const int second_row_x = gui_x + 270;
     // Quirks

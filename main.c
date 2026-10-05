@@ -148,7 +148,7 @@ bool main_cycle(IO *io, Regs *regs, Audio_data *audio,
 
     handle_input(io);
 
-    const int IPF = 11;        // instructions per frame
+    const int IPF = gui_vars->IPF;        // instructions per frame
     for (int i = 0; i < IPF; i++) {
         if (io->display_wait && quirks.is_display_wait) break; // comment to disable screen wait
 
