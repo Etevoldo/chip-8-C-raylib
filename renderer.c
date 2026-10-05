@@ -29,7 +29,9 @@ void draw(IO *io, Regs *regs, GuiVars *gui_vars)
                 DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
             }
         }
+        #ifdef DEBUG_ON
         draw_debug(io, regs, gui_vars);
+        #endif
 
         draw_gui(io, regs, gui_vars);
     EndDrawing();
