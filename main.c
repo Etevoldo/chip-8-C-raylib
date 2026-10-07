@@ -55,7 +55,9 @@ int main(int argc, char *argv[])
     };
 
     GuiVars gui_vars = init_gui_vars();
-    gui_vars.audio_data = init_audio();
+    AudioStream stream = init_audio();
+    gui_vars.audio_data = init_audio_vars(stream);
+    gui_vars.quirks = init_quirks();
 
     const int frame_time = 17; // amount of time between frames in miliseconds
 

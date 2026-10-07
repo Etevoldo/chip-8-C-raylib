@@ -5,6 +5,17 @@
 #include "stack.h"
 #include "renderer.h"
 
+// init default values for quirks
+Quirks init_quirks()
+{
+    return (Quirks) {
+        .is_display_wait = true,
+        .is_8xy6e_vy_into_vx = true,
+        .is_bnnn_vx = false,
+        .is_fx565_change_I = false
+    };
+}
+
 void FDE(Regs *regs, IO *io, Quirks quirks)
 {
     // for short

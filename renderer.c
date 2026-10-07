@@ -48,10 +48,6 @@ GuiVars init_gui_vars()
         .is_paused = false,
         .is_step = false,
         .IPF = 15,
-        .quirks.is_display_wait = true,
-        .quirks.is_8xy6e_vy_into_vx = true,
-        .quirks.is_bnnn_vx = false,
-        .quirks.is_fx565_change_I = false
     };
 }
 
