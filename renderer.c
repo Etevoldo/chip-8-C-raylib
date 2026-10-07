@@ -30,10 +30,10 @@ void draw(IO *io, Regs *regs, GuiVars *gui_vars)
             }
         }
         #ifdef DEBUG_ON
-        draw_debug(io, regs, gui_vars);
+        draw_debug(regs, gui_vars, io->keys_down);
         #endif
 
-        draw_gui(io, regs, gui_vars);
+        draw_gui(regs, gui_vars);
     EndDrawing();
 }
 
@@ -55,7 +55,7 @@ GuiVars init_gui_vars()
     };
 }
 
-void draw_gui(IO *io, Regs *regs, GuiVars *gui_vars)
+void draw_gui(Regs *regs, GuiVars *gui_vars)
 {
     const int gui_y = DISPLAY_HEIGHT * SCALE + BORDER_WIDTH;
     const int gui_x = BORDER_WIDTH;
@@ -142,7 +142,7 @@ void free_debugger_inst_array(char **inst_list)
     free(inst_list);
 }
 
-void draw_debug(IO *io, Regs *regs, GuiVars *gui_vars)
+void draw_debug(Regs *regs, GuiVars *gui_vars, bool keys_down[])
 {
 
     const char *text;
@@ -158,7 +158,7 @@ void draw_debug(IO *io, Regs *regs, GuiVars *gui_vars)
     GuiGroupBox((Rectangle) {debug_x, debug_y, 70, 280 }, "Keys");
     for (int i = 0; i < N_OF_KEYS; i++) {
         text = TextFormat(
-            "%0.1X = %s", i, io->keys_down[i] ? "DOWN" : "UP");
+            "%0.1X = %s", i, keys_down[i] ? "DOWN" : "UP");
         GuiLabel(
             (Rectangle) {
                 debug_x + padding,
