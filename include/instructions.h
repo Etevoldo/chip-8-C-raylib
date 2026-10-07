@@ -2,13 +2,6 @@
 #define INSTRUCTIONS_H
 #include "types.h"
 
-typedef struct {
-    bool is_display_wait;
-    bool is_8xy6e_shift_vy_into_vx;
-    bool is_bnnn_vx;
-    bool is_fx565_change_I;
-} Quirks;
-
 void FDE(Regs *regs, IO *io, Quirks quirks);
 void op_DXYN(u8 x_index, u8 y_index, int n, Regs *regs, bool display[]);
 

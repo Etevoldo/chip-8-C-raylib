@@ -171,7 +171,7 @@ void op_8000(
         v[0xF] = (sub < 0) ? 0 : 1;
         break;
     case 0x0006:
-        if (quirks.is_8xy6e_shift_vy_into_vx) { v[x_index] = v[y_index]; }
+        if (quirks.is_8xy6e_vy_into_vx) { v[x_index] = v[y_index]; }
         shifted_bit = v[x_index] & 0b00000001;
 
         v[x_index] = v[x_index] >> 1;
@@ -185,7 +185,7 @@ void op_8000(
         v[0xF] = (sub < 0) ? 0 : 1;
         break;
     case 0x000E:
-        if (quirks.is_8xy6e_shift_vy_into_vx) { v[x_index] = v[y_index]; }
+        if (quirks.is_8xy6e_vy_into_vx) { v[x_index] = v[y_index]; }
         int shifted_bit = (v[x_index] & 0b10000000) >> 7;
 
         v[x_index] = v[x_index] << 1;

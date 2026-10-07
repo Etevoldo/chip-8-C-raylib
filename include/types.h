@@ -2,6 +2,7 @@
 #define TYPES_H
 #include <stdint.h>
 #include <stdbool.h>
+#include "raylib.h"
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -20,6 +21,8 @@ typedef struct {
 #define V_QTY 16
 #define N_OF_KEYS 16
 #define NO_KEY 16
+#define SAMPLE_RATE 44100
+#define BUFFER_SIZE 4096
 
 typedef struct {
     u8    v[V_QTY];
@@ -37,5 +40,33 @@ typedef struct {
     int   last_key_pressed;
     bool  display_wait;
 } IO;
+
+typedef struct {
+    bool is_display_wait;
+    bool is_8xy6e_vy_into_vx;
+    bool is_bnnn_vx;
+    bool is_fx565_change_I;
+} Quirks;
+
+typedef struct {
+    AudioStream stream;
+    float buffer[BUFFER_SIZE];
+    int sample_step;
+    float volume;
+    int frequency;
+} Audio_data;
+
+typedef struct {
+    const int inst_to_display;
+    int inst_active;
+    int inst_focus;
+    int inst_scrollIndex;
+    char **inst_list;
+    bool is_paused;
+    bool is_step;
+    int IPF;
+    Audio_data audio_data;
+    Quirks quirks;
+} GuiVars;
 
 #endif
