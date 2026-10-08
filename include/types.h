@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "raylib.h"
+#include "list.h"
 
 typedef uint8_t u8;
 typedef uint16_t u16;
@@ -67,6 +68,8 @@ typedef struct {
     int IPF;
     Audio_data audio_data;
     Quirks quirks;
+    char bp_text[64];
+    List bp_list;
 } GuiVars;
 
 #endif

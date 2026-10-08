@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "types.h"
 #include "raygui.h"
+#include "stack.h"
 
 #define ON_COLOR CLITERAL(Color){ 155, 188, 15, 255 }
 #define OFF_COLOR CLITERAL(Color){ 15, 56, 15, 255 }
@@ -39,7 +40,7 @@ void draw(IO *io, Regs *regs, GuiVars *gui_vars)
 
 GuiVars init_gui_vars()
 {
-    return (GuiVars) {
+    GuiVars gui_vars = (GuiVars) {
         .inst_to_display = RAM_SIZE / 2,
         .inst_active = RAM_SIZE / 4,
         .inst_focus = -1,
@@ -49,6 +50,9 @@ GuiVars init_gui_vars()
         .is_step = false,
         .IPF = 15,
     };
+    gui_vars.bp_list = list_create(64);
+
+    return gui_vars;
 }
 
 void draw_gui(Regs *regs, GuiVars *gui_vars)
@@ -238,6 +242,39 @@ void draw_debug(Regs *regs, GuiVars *gui_vars, bool keys_down[])
         RECT(debug_x + 69 + padding, debug_y + 340 + padding + label_spacing*3,
             label_width, label_height ),
         TextFormat("DT = %0.4X", regs->delay));
+
+    // Breakpoints
+    const int bp_x = debug_x + 138 + 200 + padding;
+    GuiTextBox(
+        RECT(bp_x, padding, 100, 30),
+        gui_vars->bp_text,
+        20,
+        true
+    );
+
+    GuiIconName bp_icon = ICON_BREAKPOINT_ON;
+    Rectangle bp_rec = RECT(bp_x + 110, padding, 30, 30);
+    if (GuiButton(bp_rec, GuiIconText(bp_icon, ""))) {
+        char *end;
+        const int address = strtol(gui_vars->bp_text, &end, 16);
+        if (address) {
+            list_push(&gui_vars->bp_list, address);
+        }
+        // debug
+        list_print(&gui_vars->bp_list);
+    }
+
+    GuiLabel(
+        RECT(bp_x, 30 + padding, 100, 20),
+        "Breakpoints:"
+    );
+    int bp_length = gui_vars->bp_list.length;
+    for (int i = 0; i < bp_length; i++) {
+        GuiLabel(
+            RECT(bp_x, 50 + padding + 20 * i, 50, 20),
+            TextFormat("%.4X", gui_vars->bp_list.arr[i])
+        );
+    }
 }
 
 // update global variables of for the instructions scroll list
