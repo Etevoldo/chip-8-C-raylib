@@ -1,5 +1,4 @@
-#ifndef TYPES_H
-#define TYPES_H
+#pragma once
 #include <stdint.h>
 #include <stdbool.h>
 #include "raylib.h"
@@ -71,5 +70,3 @@ typedef struct {
     char bp_text[64];
     List bp_list;
 } GuiVars;
-
-#endif

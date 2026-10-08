@@ -1,5 +1,4 @@
-#ifndef RENDERER_H
-#define RENDERER_H
+#pragma once
 #include "types.h"
 
 #define INST_TO_DISPLAY RAM_SIZE / 2
@@ -14,5 +13,3 @@ void update_scroll(Regs *regs, GuiVars *gui_vars);
 void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars);
 void free_debugger_inst_array(char **inst_list);
 bool drawPixel(int x, int y, bool isBitOn, bool display[]);
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef INSTRUCTIONS_H
-#define INSTRUCTIONS_H
+#pragma once
 #include "types.h"
 
 void FDE(Regs *regs, IO *io, Quirks quirks);
@@ -12,5 +11,3 @@ void op_FX00(u8 x_index, int other_type,
     Regs *regs, IO *io, Quirks quirks);
 
 Quirks init_quirks();
-
-#endif
