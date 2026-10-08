@@ -7,6 +7,7 @@
 #include "raylib.h"
 #include "types.h"
 #include "stack.h"
+#include "list.h"
 #include "renderer.h"
 #include "instructions.h"
 #include "audio.h"
@@ -147,6 +148,10 @@ bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars)
         }
 
         FDE(regs, io, gui_vars->quirks);
+        // pause on breakpoint
+        if (list_contains(&gui_vars->bp_list, regs->pc)) {
+            gui_vars->is_paused = true;
+        }
         update_scroll(regs, gui_vars);
     }
     return true;
