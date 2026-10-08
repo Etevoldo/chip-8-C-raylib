@@ -49,6 +49,7 @@ GuiVars init_gui_vars()
         .is_paused = false,
         .is_step = false,
         .IPF = 15,
+        .bp_is_edit_on = false
     };
     gui_vars.bp_list = list_create(64);
 
@@ -245,14 +246,13 @@ void draw_debug(Regs *regs, GuiVars *gui_vars, bool keys_down[])
 
     // Breakpoints
     const int bp_x = debug_x + 138 + 200 + padding;
-    GuiTextBox(
-        RECT(bp_x, padding, 100, 30),
-        gui_vars->bp_text,
-        20,
-        true
-    );
+    if (GuiTextBox(
+            RECT(bp_x, padding, 100, 30), gui_vars->bp_text,
+            20, gui_vars->bp_is_edit_on)) {
+            gui_vars->bp_is_edit_on = !gui_vars->bp_is_edit_on;
+       }
 
-    GuiIconName bp_icon = ICON_BREAKPOINT_ON;
+    GuiIconName bp_icon = ICON_CIRCLE_ADD_FILL;
     Rectangle bp_rec = RECT(bp_x + 110, padding, 30, 30);
     if (GuiButton(bp_rec, GuiIconText(bp_icon, ""))) {
         char *end;
@@ -268,12 +268,18 @@ void draw_debug(Regs *regs, GuiVars *gui_vars, bool keys_down[])
         RECT(bp_x, 30 + padding, 100, 20),
         "Breakpoints:"
     );
+
     int bp_length = gui_vars->bp_list.length;
     for (int i = 0; i < bp_length; i++) {
         GuiLabel(
-            RECT(bp_x, 50 + padding + 20 * i, 50, 20),
+            RECT(bp_x, 50 + padding + 30 * i, 50, 30),
             TextFormat("%.4X", gui_vars->bp_list.arr[i])
         );
+        if (GuiButton(
+            RECT(bp_x + 55, 50 + padding + 30 * i, 30, 30),
+            GuiIconText(ICON_CROSS, ""))) {
+            list_remove(&gui_vars->bp_list, i);
+        }
     }
 }
 

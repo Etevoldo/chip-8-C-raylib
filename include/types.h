@@ -68,5 +68,6 @@ typedef struct {
     Audio_data audio_data;
     Quirks quirks;
     char bp_text[64];
+    bool bp_is_edit_on;
     List bp_list;
 } GuiVars;
