@@ -33,6 +33,14 @@ void list_print(List *list)
     printf("\n");
 }
 
+void list_remove(List *list, int index)
+{
+    for (int i = index + 1; i < list->length; i++) {
+        list->arr[i - 1] = list->arr[i];
+    }
+    list->length--;
+}
+
 void list_dealloc(List *list)
 {
     free(list->arr);
