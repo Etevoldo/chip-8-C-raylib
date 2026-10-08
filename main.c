@@ -20,13 +20,13 @@ void load_font(Regs *regs);
 int map_key(int key);
 void handle_input(IO *io);
 bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars);
-void close_services(AudioStream stream)
+void close_services(AudioStream stream);
 
 int main(int argc, char *argv[])
 {
     #ifdef DEBUG_ON
     InitWindow(
-        DISPLAY_WIDTH * SCALE + 380,
+        DISPLAY_WIDTH * SCALE + 680,
         DISPLAY_HEIGHT * SCALE + 200,
         "Chip-8 Emu");
     #else
