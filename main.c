@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 {
     #ifdef DEBUG_ON
     InitWindow(
-        DISPLAY_WIDTH * SCALE + 680,
+        DISPLAY_WIDTH * SCALE + 510,
         DISPLAY_HEIGHT * SCALE + 200,
         "Chip-8 Emu");
     #else
