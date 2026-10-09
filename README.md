@@ -1,3 +1,5 @@
+![screenshot](/screenshot.png)
+
 # What is this
 
 Yet another CHIP-8 emulator.
