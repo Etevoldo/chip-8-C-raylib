@@ -16,20 +16,27 @@ void draw(IO *io, Regs *regs, GuiVars *gui_vars)
     io->display_wait = false;
     io->last_key_pressed = NO_KEY;
 
+    for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+        for (int x = 0; x < DISPLAY_WIDTH; x++) {
+            int index = x + y * DISPLAY_WIDTH;
+            if (!io->display[index]) {
+                ImageDrawPixel(&io->screen_image, x , y, OFF_COLOR);
+            }
+            else ImageDrawPixel(&io->screen_image, x , y, ON_COLOR);
+        }
+    }
+    UpdateTexture(io->screen_texture, io->screen_image.data);
+
     BeginDrawing();
         ClearBackground(BLACK);
 
-        // CHIP-8 display
-        DrawRectangle(0, 0, DISPLAY_WIDTH * SCALE, 
-            DISPLAY_HEIGHT * SCALE, OFF_COLOR);
+        DrawTextureEx(
+            io->screen_texture,
+            (Vector2) { 0, 0 },
+            0.0f,
+            (float) SCALE,
+            WHITE);
 
-        for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-            for (int x = 0; x < DISPLAY_WIDTH; x++) {
-                int index = x + y * DISPLAY_WIDTH;
-                if (!io->display[index]) continue;
-                DrawRectangle(x * SCALE, y * SCALE, SCALE, SCALE, ON_COLOR);
-            }
-        }
         #ifdef DEBUG_ON
         draw_debug(regs, gui_vars, io->keys_down);
         #endif

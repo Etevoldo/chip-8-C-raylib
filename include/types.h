@@ -35,6 +35,8 @@ typedef struct {
 } Regs;
 
 typedef struct {
+    Image screen_image;
+    Texture screen_texture;
     bool  display[DISPLAY_HEIGHT * DISPLAY_WIDTH];
     bool  keys_down[N_OF_KEYS];
     int   last_key_pressed;

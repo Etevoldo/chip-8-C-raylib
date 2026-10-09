@@ -22,7 +22,7 @@ Future Goals:
 - [x] Sound
 - [x] Add quirk configurations
 - [ ] Pixel Fade out screen effect to reduce flickering
-- [ ] Texture manipulation for screen rendering instead of rec spam
+- [x] Texture manipulation for screen rendering instead of rec spam
 - [x] Debug Functionality
     - [x] Stack
     - [x] All Registers

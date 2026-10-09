@@ -53,6 +53,8 @@ int main(int argc, char *argv[])
         .keys_down = { false },
         .last_key_pressed = NO_KEY,
         .display_wait = false,
+        .screen_image = GenImageColor(DISPLAY_WIDTH, DISPLAY_HEIGHT, GREEN),
+        .screen_texture =  LoadTextureFromImage(io.screen_image)
     };
 
     GuiVars gui_vars = init_gui_vars();
