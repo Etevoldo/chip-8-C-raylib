@@ -21,7 +21,9 @@ void load_font(Regs *regs);
 int map_key(int key);
 void handle_input(IO *io);
 bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars);
-void close_services(AudioStream stream);
+void close_services(AudioStream stream, 
+    Image screen_image,
+    Texture screen_texture);
 
 int main(int argc, char *argv[])
 {
@@ -81,8 +83,8 @@ int main(int argc, char *argv[])
         usleep(frame_time * 1000);
 
         if (WindowShouldClose()) {
-            close_services(stream);
-            return 0 ;
+            close_services(stream, io.screen_image, io.screen_texture);
+            return 0;
         }
     }
 
@@ -103,16 +105,21 @@ int main(int argc, char *argv[])
     #ifdef DEBUG_ON
     free_debugger_inst_array(gui_vars.inst_list);
     #endif
-    close_services(stream);
+
+    close_services(stream, io.screen_image, io.screen_texture);
 
     return 0;
 }
 
-//unload all resources and close window
-void close_services(AudioStream stream)
+void close_services(
+    AudioStream stream, 
+    Image screen_image,
+    Texture screen_texture)
 {
-    UnloadAudioStream(stream);
     CloseAudioDevice();
+    UnloadTexture(screen_texture);
+    UnloadImage(screen_image);
+    UnloadAudioStream(stream);
     CloseWindow();
 }
 
