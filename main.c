@@ -11,15 +11,12 @@
 #include "renderer.h"
 #include "instructions.h"
 #include "audio.h"
+#include "io.h"
 #include "style_amber.h"
 
 #define SAMPLE_RATE 44100
 #define BUFFER_SIZE 4096
 
-int load_rom(Regs *regs, char *file_name);
-void load_font(Regs *regs);
-int map_key(int key);
-void handle_input(IO *io);
 bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars);
 void close_services(AudioStream stream, 
     Image screen_image,
@@ -72,7 +69,7 @@ int main(int argc, char *argv[])
             FilePathList dropped_rom = LoadDroppedFiles();
             if ((dropped_rom.count > 0) &&
                  IsFileExtension(dropped_rom.paths[0], ".ch8")) {
-                load_rom(&regs, dropped_rom.paths[0]);
+                load_rom(regs.ram, dropped_rom.paths[0]);
                 #ifdef DEBUG_ON
                 load_debugger_inst_array(&regs, &gui_vars);
                 #endif
@@ -88,7 +85,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    load_font(&regs);
+    load_font(regs.ram);
 
     while (!WindowShouldClose()) {
 
@@ -112,7 +109,7 @@ int main(int argc, char *argv[])
 }
 
 void close_services(
-    AudioStream stream, 
+    AudioStream stream,
     Image screen_image,
     Texture screen_texture)
 {
@@ -140,7 +137,7 @@ bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars)
     if (regs->sound == 0) PauseAudioStream(gui_vars->audio_data.stream);
     if (regs->sound) ResumeAudioStream(gui_vars->audio_data.stream);
 
-    handle_input(io);
+    handle_input(io->keys_down, &io->last_key_pressed);
 
     const int IPF = gui_vars->IPF;        // instructions per frame
     for (int i = 0; i < IPF; i++) {
@@ -164,87 +161,4 @@ bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars)
         update_scroll(regs, gui_vars);
     }
     return true;
-}
-
-void handle_input(IO *io)
-{
-    int key_codes[N_OF_KEYS] = {
-        KEY_ONE, KEY_TWO, KEY_THREE, KEY_FOUR, KEY_Q, KEY_W, KEY_E,
-        KEY_R, KEY_A, KEY_S, KEY_D, KEY_F, KEY_Z, KEY_X, KEY_C, KEY_V,
-    };
-
-    int key_index;
-    for (int i = 0; i < N_OF_KEYS; i++) {
-        key_index = map_key(key_codes[i]);
-        if (IsKeyDown(key_codes[i]) && !io->keys_down[key_index]) {
-            io->keys_down[key_index] = true;
-        }
-        if (IsKeyUp(key_codes[i]) && io->keys_down[key_index]) {
-            io->keys_down[key_index] = false;
-            io->last_key_pressed = key_index;
-        }
-    }
-
-}
-
-int map_key(int key)
-{
-    switch (key){
-        case KEY_ONE:   return 0x1;
-        case KEY_TWO:   return 0x2;
-        case KEY_THREE: return 0x3;
-        case KEY_FOUR:  return 0xC;
-        case KEY_Q:     return 0x4;
-        case KEY_W:     return 0x5; 
-        case KEY_E:     return 0x6; 
-        case KEY_R:     return 0xD; 
-        case KEY_A:     return 0x7; 
-        case KEY_S:     return 0x8; 
-        case KEY_D:     return 0x9; 
-        case KEY_F:     return 0xE; 
-        case KEY_Z:     return 0xA; 
-        case KEY_X:     return 0x0; 
-        case KEY_C:     return 0xB; 
-        case KEY_V:     return 0xF;
-        default:        return NO_KEY;
-    }
-}
-
-int load_rom(Regs *regs, char *file_name)
-{
-    FILE *rom;
-    if ((rom = fopen(file_name, "rb")) == NULL)
-        return 0;
-
-    fread(regs->ram + PC_START, 1, RAM_SIZE - PC_START, rom);
-
-    fclose(rom);
-    return 1;
-}
-
-void load_font(Regs *regs)
-{
-    u8 font[] = {
-        0xF0, 0x90, 0x90, 0x90, 0xF0,  // 0
-        0x20, 0x60, 0x20, 0x20, 0x70,  // 1
-        0xF0, 0x10, 0xF0, 0x80, 0xF0,  // 2
-        0xF0, 0x10, 0xF0, 0x10, 0xF0,  // 3
-        0x90, 0x90, 0xF0, 0x10, 0x10,  // 4
-        0xF0, 0x80, 0xF0, 0x10, 0xF0,  // 5
-        0xF0, 0x80, 0xF0, 0x90, 0xF0,  // 6
-        0xF0, 0x10, 0x20, 0x40, 0x40,  // 7
-        0xF0, 0x90, 0xF0, 0x90, 0xF0,  // 8
-        0xF0, 0x90, 0xF0, 0x10, 0xF0,  // 9
-        0xF0, 0x90, 0xF0, 0x90, 0x90,  // A
-        0xE0, 0x90, 0xE0, 0x90, 0xE0,  // B
-        0xF0, 0x80, 0x80, 0x80, 0xF0,  // C
-        0xE0, 0x90, 0x90, 0x90, 0xE0,  // D
-        0xF0, 0x80, 0xF0, 0x80, 0xF0,  // E
-        0xF0, 0x80, 0xF0, 0x80, 0x80}; // F
-    
-    const int font_length = sizeof(font) / sizeof(font[0]);
-
-    for (int i = 0; i < font_length; i++) {
-        regs->ram[FONT_START + i] = font[i];
-    }
 }
