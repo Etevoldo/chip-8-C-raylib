@@ -21,6 +21,8 @@ bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars);
 void close_services(AudioStream stream, 
     Image screen_image,
     Texture screen_texture);
+IO init_io();
+Regs init_regs();
 
 int main(int argc, char *argv[])
 {
@@ -36,32 +38,15 @@ int main(int argc, char *argv[])
     #endif
     GuiLoadStyleAmber();
 
-    Stack s = (Stack) {0, { 0 }};
-    Regs regs = (Regs) {
-        .v = { 0 },
-        .index = 0,
-        .delay = 0,
-        .sound = 0,
-        .ram = { 0 },
-        .stack = s,
-        .pc = PC_START,
-    };
-
-    IO io = (IO) {
-        .display = { false },
-        .keys_down = { false },
-        .last_key_pressed = NO_KEY,
-        .display_wait = false,
-        .screen_image = GenImageColor(DISPLAY_WIDTH, DISPLAY_HEIGHT, GREEN),
-        .screen_texture =  LoadTextureFromImage(io.screen_image)
-    };
-
+    Regs regs = init_regs();
+    IO io = init_io();
     GuiVars gui_vars = init_gui_vars();
     AudioStream stream = init_audio();
     gui_vars.audio_data = init_audio_vars(stream);
     gui_vars.quirks = init_quirks();
     alloc_debugger_inst_array(&gui_vars.inst_list);
 
+    load_font(regs.ram);
     const int frame_time = 17; // amount of time between frames in miliseconds
 
     // Insert ROM gui pre-loop
@@ -86,9 +71,24 @@ int main(int argc, char *argv[])
         }
     }
 
-    load_font(regs.ram);
-
     while (!WindowShouldClose()) {
+        if (IsFileDropped()) {
+            FilePathList dropped_rom = LoadDroppedFiles();
+            if ((dropped_rom.count > 0) &&
+                 IsFileExtension(dropped_rom.paths[0], ".ch8")) {
+                UnloadTexture(io.screen_texture);
+                UnloadImage(io.screen_image);
+                regs = init_regs();
+                io = init_io();
+                load_rom(regs.ram, dropped_rom.paths[0]);
+
+                UnloadDroppedFiles(dropped_rom);
+
+                #ifdef DEBUG_ON
+                load_debugger_inst_array(regs.ram, gui_vars.inst_list);
+                #endif
+            }
+        }
 
         if (!main_cycle(&io, &regs, &gui_vars)) break;
 
@@ -159,4 +159,30 @@ bool main_cycle(IO *io, Regs *regs, GuiVars *gui_vars)
         update_scroll(regs, gui_vars);
     }
     return true;
+}
+
+IO init_io()
+{
+    IO io = (IO) {
+        .display = { false },
+        .keys_down = { false },
+        .last_key_pressed = NO_KEY,
+        .display_wait = false,
+        .screen_image = GenImageColor(DISPLAY_WIDTH, DISPLAY_HEIGHT, GREEN),
+        .screen_texture = LoadTextureFromImage(io.screen_image)
+    };
+    return io;
+}
+
+Regs init_regs()
+{
+    return (Regs) {
+        .v = { 0 },
+        .index = 0,
+        .delay = 0,
+        .sound = 0,
+        .ram = { 0 },
+        .stack = (Stack) {0, { 0 }},
+        .pc = PC_START,
+    };
 }
