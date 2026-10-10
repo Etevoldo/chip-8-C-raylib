@@ -120,24 +120,28 @@ void draw_gui(Regs *regs, GuiVars *gui_vars)
         &(gui_vars->quirks.is_fx565_change_I));
 }
 
-void load_debugger_inst_array(Regs *regs, GuiVars *gui_vars)
+void alloc_debugger_inst_array(char ***inst_list)
 {
-    gui_vars->inst_list = (char **) malloc(INST_TO_DISPLAY * sizeof(char **));
-    if (gui_vars->inst_list == NULL) {
+    *inst_list = (char **) malloc(INST_TO_DISPLAY * sizeof(char **));
+    if (*inst_list == NULL) {
         exit(EXIT_FAILURE);
     }
 
     for (int i = 0; i < INST_TO_DISPLAY; i++) {
-        gui_vars->inst_list[i] = (char *) malloc(INST_DEBUG_STRING_SIZE + 1);
-        if (gui_vars->inst_list[i] == NULL) {
+        (*inst_list)[i] = (char *) malloc(INST_DEBUG_STRING_SIZE + 1);
+        if ((*inst_list)[i] == NULL) {
             exit(EXIT_FAILURE);
         }
     }
+}
 
+void load_debugger_inst_array(u8 *ram, char **inst_list)
+{
     for (int j = 0, i = 0; i < INST_TO_DISPLAY; j += 2, i++) {
-        // idea to investigate this is reclycling memory values
-        sprintf(gui_vars->inst_list[i], "%.4X = %.2X%.2X\n",
-            j, regs->ram[j], regs->ram[j + 1]);
+        sprintf(
+            inst_list[i],
+            "%.4X: %.2X%.2X\n",
+            j, ram[j], ram[j + 1]);
     }
 }
 

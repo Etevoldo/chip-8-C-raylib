@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
     AudioStream stream = init_audio();
     gui_vars.audio_data = init_audio_vars(stream);
     gui_vars.quirks = init_quirks();
+    alloc_debugger_inst_array(&gui_vars.inst_list);
 
     const int frame_time = 17; // amount of time between frames in miliseconds
 
@@ -71,7 +72,7 @@ int main(int argc, char *argv[])
                  IsFileExtension(dropped_rom.paths[0], ".ch8")) {
                 load_rom(regs.ram, dropped_rom.paths[0]);
                 #ifdef DEBUG_ON
-                load_debugger_inst_array(&regs, &gui_vars);
+                load_debugger_inst_array(regs.ram, gui_vars.inst_list);
                 #endif
                 break;
             }
@@ -88,9 +89,6 @@ int main(int argc, char *argv[])
     load_font(regs.ram);
 
     while (!WindowShouldClose()) {
-
-        // pause hack
-        if (IsKeyPressed(KEY_P)) gui_vars.is_paused = !gui_vars.is_paused;
 
         if (!main_cycle(&io, &regs, &gui_vars)) break;
 
